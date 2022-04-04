@@ -119,27 +119,27 @@ PRINT:
                     MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
     PA:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                     BEQ         FINP
-                    MOVE        D0,D4
+                    MOVE        D1,D4
                     MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
                     MOVE.L      #2,D0           * ESCCAR ESRIBA POR LTA
                     BSR         ESCCAR 
                     CMP.L       #$FFFFFFFF,D0   * MIRAMOS SI ESCCAR HA FALLADO SI?-> FIN
-                    MOVE.L      D4,D0
-                    BEQ         FINP     
+                    BEQ         FINP 
+                    MOVE.L      D4,D1    
                     SUB.L       #1,D3
-                    ADD.L       #1,D0
+                    ADD.L       #1,D5
                     BR          PA
            
                     MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
     PB:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                     BEQ         FINP
-                    MOVE        D0,D4
-                    MOVE        (A1)+,D1        * 
+                    MOVE        D1,D4
+                    MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
                     MOVE.L      #3,D0           * ESCCAR ESRIBA POR LTB
                     BSR         ESCCAR 
                     CMP.L       #$FFFFFFFF,D0   
                     BEQ         FINP
-                    MOVE.L      D4,D0     
+                    MOVE.L      D4,D1     
                     SUB.L       #1,D3
                     ADD.L       #1,D5
                     BR          PB
