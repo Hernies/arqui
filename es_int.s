@@ -37,41 +37,55 @@ TAMBUF EQU 2001
 
 
 ** BUFERES INTERNOS
+SCAN_A  EQU     0
+SCAN_B  EQU     1
+PRNT_A  EQU     2
+PRNT_B  EQU     3
 
-* 0 ENTRADA A
-BEA:        DS.B    TAMBUF      * Bufer Entrada A
-PIEA:       DC.L    0           * Puntero Inicio Entrada A
-PFEA:       DC.L    0           * Puntero Fin Entrada A
+TAMBUF  EQU     2001
 
+* Buffer de Scan A
+BSCAN_A         DC.L    BSC_A   * Puntero de extraccion
+                DC.L    BSC_A   * Puntero de insercion
+BSC_A           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
 
-* 1 ENTRADA B
-BEB:        DS.B    TAMBUF      * Bufer Entrada B
-PIEB:       DC.L    0           * Puntero Inicio Entrada B
-PFEB:       DC.L    0           * Puntero Fin Entrada B
+* Buffer de Scan B
+BSCAN_B         DC.L    BSC_B   * Puntero de extraccion
+                DC.L    BSC_B   * Puntero de insercion
+BSC_B           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
 
+* Buffer de Print A
+BPRNT_A         DC.L    BPR_A   * Puntero de extraccion
+                DC.L    BPR_A   * Puntero de insercion
+BPR_A           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
 
-* 2 SALIDA A
-BSA:        DS.B    TAMBUF  	* Bufer Salida A
-PISA:       DC.L    0           * Puntero Inicio Salida A
-PFSA:       DC.L    0           * Puntero Fin Salida A
+* Buffer de Print B
+BPRNT_B         DC.L    BPR_B   * Puntero de extraccion
+                DC.L    BPR_B   * Puntero de insercion
+BPR_B           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
 
-
-* 2 SALIDA B
-BSB:        DS.B    TAMBUF  	* Bufer Salida A
-PISB:       DC.L    0           * Puntero Inicio Salida A
-PFSB:       DC.L    0           * Puntero Fin Salida A
-
-
+                DC.W 1
 **************************** INIT ********************************************
+
 INIT:
 * inicializamos líneas de comunicaciones
 
 
-**************************** INIT_BUFS ********************************************
+*************************** INI_BUFS *********************************************************
 
-INIT_BUFS:
+INI_BUFS:
+        MOVE.L  #BSC_A,BSCAN_A          * Inicia el puntero de extraccion
+        MOVE.L  #BSC_A,BSCAN_A+4        * Inicia el puntero de insercion
+        MOVE.L  #BSC_B,BSCAN_B          * Inicia el puntero de extraccion
+        MOVE.L  #BSC_B,BSCAN_B+4        * Inicia el puntero de insercion
+        MOVE.L  #BPR_A,BPRNT_A          * Inicia el puntero de extraccion
+        MOVE.L  #BPR_A,BPRNT_A+4        * Inicia el puntero de insercion
+        MOVE.L  #BPR_B,BPRNT_B          * Inicia el puntero de extraccion
+        MOVE.L  #BPR_B,BPRNT_B+4        * Inicia el puntero de insercion
 
-**************************** PRINT ********************************************
+        RTS
+
+*************************** FIN INI_BUFS *****************************************************
 ** Escribe en un bufer interno (de tamaño 2000) de manera no bloqueante (acaba cuando termina de escribir Buffer)
 * Llama a ESCCAR
 * Devuelve el numero de caracteres copiados en D0
