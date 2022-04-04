@@ -86,6 +86,8 @@ INI_BUFS:
         RTS
 
 *************************** FIN INI_BUFS *****************************************************
+
+*************************** PRINT *****************************************************
 ** Escribe en un bufer interno (de tamaño 2000) de manera no bloqueante (acaba cuando termina de escribir Buffer)
 * Llama a ESCCAR
 * Devuelve el numero de caracteres copiados en D0
@@ -167,4 +169,5 @@ PRINT:
                     UNLK A6
                     RTS
 
+*************************** FIN PRINT *****************************************************
 
