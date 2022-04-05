@@ -133,6 +133,7 @@ SCAN:
                         MOVE.L     12(A6),D1       * DESCRIPTOR A D1
                         MOVE.L      D1,D6          * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
                         MOVE.L     14(A6),D2       * TAMAÑO A D2
+                        MOVE.L 
                         **SELECCION DE BUFFER**
                         CMP.W       #0,D1
                         BEQ         SA              *LEER POR A 
