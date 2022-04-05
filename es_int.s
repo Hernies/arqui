@@ -65,29 +65,65 @@ BPRNT_B         DC.L    BPR_B   * Puntero de extraccion
 BPR_B           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
 
                 DC.W 1
-**************************** INIT ********************************************
+**************************** INIT ****************************************************
 
 INIT:
-* inicializamos líneas de comunicaciones
+
+** Inicializar linea A
+                        MOVE.B    #%00010000,CRA      * Dar acceso a reg. modo 1
+                        MOVE.B    #%00000011,MR1A     * 8 bits por caracter
+                        MOVE.B    #%00000000,MR2A     * Desactivar el eco
+                        MOVE.B    #%00000101,CRA      * Modo full duplex
+                        MOVE.B    #%11001100,CSRA     * Velocidad = 38400 bps tx y rx
+
+** Inicializar linea B
+                        MOVE.B    #%00010000,CRB      * Dar acceso a reg. modo 1
+                        MOVE.B    #%00000011,MR1B     * 8 bits por caracter
+                        MOVE.B    #%00000000,MR2B     * Desactivar el eco
+                        MOVE.B    #%00000101,CRB      * Modo full duplex
+                        MOVE.B    #%11001100,CSRB     * Velocidad = 38400 bps tx y rx
+
+** Inicializaciones globales
+                        MOVE.B    #%00000000,ACR      * Conjunto de veloc. 1
+                        MOVE.B    #$40,IVR            * Vector int 0x40
+                        MOVE.B    #%000100010,IMR     * Activar bits 1 y 5 para interr. RX
+                        MOVE.B    #%000100010,IMRDUP  * Actualiza copia del IMR
+                        MOVE.L    #RTI,$100           * Inserta dir de RTI en primer vector int
 
 
-*************************** INI_BUFS *********************************************************
+                        BR      INI_BUFS
 
+** Inicializacion de los contadores a cero y reseteo de A0
+                        MOVE.L    #0,D0
+                        MOVE.L    #0,A0
+                        RTS
+*************************** FIN INI **************************************************
+
+
+
+*************************** INI_BUFS *************************************************
 INI_BUFS:
-        MOVE.L  #BSC_A,BSCAN_A          * Inicia el puntero de extraccion
-        MOVE.L  #BSC_A,BSCAN_A+4        * Inicia el puntero de insercion
-        MOVE.L  #BSC_B,BSCAN_B          * Inicia el puntero de extraccion
-        MOVE.L  #BSC_B,BSCAN_B+4        * Inicia el puntero de insercion
-        MOVE.L  #BPR_A,BPRNT_A          * Inicia el puntero de extraccion
-        MOVE.L  #BPR_A,BPRNT_A+4        * Inicia el puntero de insercion
-        MOVE.L  #BPR_B,BPRNT_B          * Inicia el puntero de extraccion
-        MOVE.L  #BPR_B,BPRNT_B+4        * Inicia el puntero de insercion
+                        MOVE.L  #BSC_A,BSCAN_A          * Inicia el puntero de extraccion
+                        MOVE.L  #BSC_A,BSCAN_A+4        * Inicia el puntero de insercion
+                        MOVE.L  #BSC_B,BSCAN_B          * Inicia el puntero de extraccion
+                        MOVE.L  #BSC_B,BSCAN_B+4        * Inicia el puntero de insercion
+                        MOVE.L  #BPR_A,BPRNT_A          * Inicia el puntero de extraccion
+                        MOVE.L  #BPR_A,BPRNT_A+4        * Inicia el puntero de insercion
+                        MOVE.L  #BPR_B,BPRNT_B          * Inicia el puntero de extraccion
+                        MOVE.L  #BPR_B,BPRNT_B+4        * Inicia el puntero de insercion
 
-        RTS
+                        RTS
+*************************** FIN INI_BUFS *********************************************
 
-*************************** FIN INI_BUFS *****************************************************
 
-*************************** PRINT *****************************************************
+*************************** SCAN *****************************************************
+
+
+
+*************************** FIN SCAN *************************************************
+
+
+*************************** PRINT ****************************************************
 ** Escribe en un bufer interno (de tamaño 2000) de manera no bloqueante (acaba cuando termina de escribir Buffer)
 * Llama a ESCCAR
 * Devuelve el numero de caracteres copiados en D0
