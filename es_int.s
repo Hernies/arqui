@@ -145,6 +145,7 @@ PRINT:
                     MOVE.L     12(A6),D1       * DESCRIPTOR A D1
                     MOVE.L      D1,D6          * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
                     MOVE.L     14(A6),D2       * TAMAÑO A D2
+                    MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
                     **SELECCION DE BUFFER**
                     CMP.W       #0,D1
                     BEQ         PA              *ESCRIBIR POR A 
@@ -154,8 +155,8 @@ PRINT:
                     MOVE.L      #$FFFFFFFF,D0 
                     BRA         FN_PRNT
                     **ESCRITURA**
-     PA:            MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
-    BPA:            CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
+                    
+     PA:            CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                     BEQ         FINP
                     MOVE        D1,D4
                     MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
@@ -166,10 +167,9 @@ PRINT:
                     MOVE.L      D4,D1    
                     SUB.L       #1,D3
                     ADD.L       #1,D5
-                    BRA         BPA
+                    BRA          BPA
            
-     PB:            MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
-    BPB:            CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
+     PB:            CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                     BEQ         FINP
                     MOVE        D0,D4
                     MOVE.L      (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
