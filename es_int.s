@@ -148,7 +148,7 @@ SCAN:
                         BEQ         FINS
                         MOVE        D1,D4
                         MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
-                        MOVE.L      #2,D0           * ESCCAR ESRIBA POR LTA
+                        MOVE.L      #0,D0           * ESCCAR ESRIBA POR LTA
                         BSR         LEECAR 
                         CMP.L       #$FFFFFFFF,D0   * MIRAMOS SI LEECAR HA FALLADO SI?-> FIN
                         BEQ         FINS
@@ -161,7 +161,7 @@ SCAN:
                         BEQ         FINS
                         MOVE        D0,D4
                         MOVE.L      (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
-                        MOVE.L      #3,D0           * ESCCAR ESRIBA POR LTB
+                        MOVE.L      #1,D0           * ESCCAR ESRIBA POR LTB
                         BSR         LEECAR 
                         CMP.L       #$FFFFFFFF,D0   * MIRAMOS SI LEECAR HA FALLADO SI?-> FIN
                         BEQ         FINS
