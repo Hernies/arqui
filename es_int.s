@@ -65,8 +65,8 @@ BPRNT_B         DC.L    BPR_B   * Puntero de extraccion
 BPR_B           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
 
                 DC.W 1
+                
 **************************** INIT ****************************************************
-
 INIT:
 
 ** Inicializar linea A
@@ -115,6 +115,93 @@ INI_BUFS:
                         RTS
 *************************** FIN INI_BUFS *********************************************
 
+
+*************************** ESCCAR *********************************************************
+
+ESCCAR:
+        MOVEM.L A0-A4/D2,-(A7)       * Guarda todos los registros en la pila
+
+        CMP.L   #SCAN_A,D0
+        BNE     ESCB
+        MOVE.L  #BSCAN_A,A0
+        BRA     CONTESC
+ESCB:   CMP.L   #SCAN_B,D0
+        BNE     EPRA
+        MOVE.L  #BSCAN_B,A0
+        BRA     CONTESC
+EPRA:   CMP.L   #PRNT_A,D0
+        BNE     EPRB
+        MOVE.L  #BPRNT_A,A0
+        BRA     CONTESC
+EPRB:   MOVE.L  #BPRNT_B,A0
+
+CONTESC: EOR.L D0,D0            * A0 contiene la direcci�n del puntero de extracci�n
+        MOVE.L  (A0),A1         * A1 contiene el puntero de extracci�n
+        MOVE.L  4(A0),A2        * A2 contiene el puntero de inserci�n
+		        MOVE.L  A0,A3
+        ADD.L   #8,A3           * A3 contiene el comienzo del buffer
+        MOVE.L  A3,D2
+        ADD.L   #TAMBUF,D2
+        MOVE.L  D2,A4           * A4 contiene el final del buffer (1 m�s all�)
+
+        MOVE.B  D1,(A2)+                * Inserta el caracter
+        CMP.L   A2,A4           * Si son iguales  ha llegado al final del buffer
+        BNE     ACPUNE
+        MOVE.L  A3,A2           * Se pone el puntero de inserci�n al comienzo del buffer
+ACPUNE: CMP.L   A1,A2           * Si son iguales se ha llenado el buffer
+        BEQ     LLENO
+        MOVE.L  A2,4(A0)        * Actualiza el puntero de inserci�n
+        BRA     FINEB
+LLENO:  MOVE.L  #-1,D0          * Se devuelve un -1 en D0
+FINEB:  MOVEM.L       (A7)+,A0-A4/D2 *Restauramos los registros
+        RTS
+
+*************************** FIN ESCCAR *****************************************************
+
+
+*************************** LEECAR *********************************************************
+
+LEECAR:
+        MOVEM.L A0-A4/D2,-(A7)       * Guarda todos los registros en la pila
+
+        CMP.L   #SCAN_A,D0
+        BNE     LSCB
+        MOVE.L  #BSCAN_A,A0
+        BRA     CONTLEE
+LSCB:   CMP.L   #SCAN_B,D0
+        BNE     LPRA
+        MOVE.L  #BSCAN_B,A0
+        BRA     CONTLEE
+LPRA:   CMP.L   #PRNT_A,D0
+        BNE     LPRB
+        MOVE.L  #BPRNT_A,A0
+        BRA     CONTLEE
+LPRB:   MOVE.L  #BPRNT_B,A0
+
+CONTLEE:                                * A0 contiene la direcci�n del puntero de extracci�n
+        MOVE.L  (A0),A1         * A1 contiene el puntero de extracci�n
+        MOVE.L  4(A0),A2        * A2 contiene el puntero de inserci�n
+        MOVE.L  A0,A3
+        ADD.L   #8,A3           * A3 contiene el comienzo del buffer
+        MOVE.L  A3,D2
+        ADD.L   #TAMBUF,D2
+        MOVE.L  D2,A4           * A4 contiene el final del buffer (1 m�s all�)
+
+        CMP.L   A1,A2           * Si son iguales, el buffer est� vac�o
+        BNE     NOVAC
+        MOVE.L  #-1,D0
+        BRA     SALLB
+
+NOVAC:  MOVE.B  (A1)+,D0                * Extrae el caracter
+        CMP.L   A1,A4           * Si son iguales  ha llegado al final del buffer
+        BNE     ACPUNL
+        MOVE.L  A3,A1           * Se pone el puntero de extracci�n al comienzo del buffer
+ACPUNL: MOVE.L  A1,(A0)         * Actualiza el puntero de extracci�n
+
+SALLB:  MOVEM.L (A7)+,A0-A4/D2 *Restauramos los registros
+        RTS
+
+*************************** FIN LEECAR *****************************************************
 
 *************************** SCAN *****************************************************
 ** Lee los caracteres que entran y los copia al buffer indicado
