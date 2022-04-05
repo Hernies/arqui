@@ -65,13 +65,41 @@ BPRNT_B         DC.L    BPR_B   * Puntero de extraccion
 BPR_B           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
 
                 DC.W 1
-**************************** INIT ********************************************
+**************************** INIT ****************************************************
 
 INIT:
 * inicializamos líneas de comunicaciones
 
+MR1A   EQU $effc01       * modo A (escritura)
+MR2A   EQU $effc01       * modo A (2 escritura)
+SRA    EQU $effc03       * estado A (lectura)
+CSRA   EQU $effc03       * seleccion de reloj A (escritura)
+CRA    EQU $effc05       * control A (escritura)
+TBA    EQU $effc07       * buffer transmision A (escritura)
+RBA    EQU $effc07       * buffer recepcion A  (lectura)
+ACR    EQU $effc09	 * control auxiliar
+IMR    EQU $effc0B       * mascara de interrupcion A (escritura)
+ISR    EQU $effc0B       * estado de interrupcion A (lectura)
 
-*************************** INI_BUFS *********************************************************
+MR1B   EQU $effc11       * modo B (escritura)
+MR2B   EQU $effc11       * modo B (2 escritura)
+CRB    EQU $effc15	 * control A (escritura)
+TBB    EQU $effc17       * buffer transmision B (escritura)
+RBB    EQU $effc17       * buffer recepcion B (lectura)
+SRB    EQU $effc13       * estado B (lectura)
+CSRB   EQU $effc13       * seleccion de reloj B (escritura)
+
+IVR    EQU $effc19       * Registro vector de interrupcion
+
+CR     EQU $0D	         * Carriage Return
+LF     EQU $0A	         * Line Feed
+FLAGT  EQU 2	         * Flag de transmision
+FLAGR  EQU 0	         * Flag de recepcion
+TAMBUF EQU 2001          * Tamaño del buffer
+
+BR      INI_BUFS
+
+*************************** INI_BUFS *************************************************
 
 INI_BUFS:
         MOVE.L  #BSC_A,BSCAN_A          * Inicia el puntero de extraccion
@@ -85,9 +113,18 @@ INI_BUFS:
 
         RTS
 
-*************************** FIN INI_BUFS *****************************************************
+*************************** FIN INI_BUFS *********************************************
 
-*************************** PRINT *****************************************************
+
+
+*************************** SCAN *****************************************************
+
+
+
+*************************** FIN SCAN *************************************************
+
+
+*************************** PRINT ****************************************************
 ** Escribe en un bufer interno (de tamaño 2000) de manera no bloqueante (acaba cuando termina de escribir Buffer)
 * Llama a ESCCAR
 * Devuelve el numero de caracteres copiados en D0
