@@ -155,7 +155,7 @@ PRINT:
                     BRA         FN_PRNT
                     **ESCRITURA**
      PA:            MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
-    BPA:            CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
+                    CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                     BEQ         FINP
                     MOVE        D1,D4
                     MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
@@ -166,10 +166,10 @@ PRINT:
                     MOVE.L      D4,D1    
                     SUB.L       #1,D3
                     ADD.L       #1,D5
-                    BRA          BPA
+                    BRA          PA
            
      PB:            MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
-    BPB:            CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
+                    CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                     BEQ         FINP
                     MOVE        D0,D4
                     MOVE.L      (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
@@ -180,7 +180,7 @@ PRINT:
                     MOVE.L      D4,D0     
                     SUB.L       #1,D3
                     ADD.L       #1,D5
-                    BRA          BPB
+                    BRA          PB
 
     FINP:           CLR         D1
                     MOVE.L      D6,D1           * CARGO EN D1 EL VALOR QUE TENIA AL PRINCIPIO  
