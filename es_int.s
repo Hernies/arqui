@@ -68,53 +68,52 @@ BPR_B           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
 **************************** INIT ****************************************************
 
 INIT:
-* inicializamos líneas de comunicaciones
 
-MR1A   EQU $effc01       * modo A (escritura)
-MR2A   EQU $effc01       * modo A (2 escritura)
-SRA    EQU $effc03       * estado A (lectura)
-CSRA   EQU $effc03       * seleccion de reloj A (escritura)
-CRA    EQU $effc05       * control A (escritura)
-TBA    EQU $effc07       * buffer transmision A (escritura)
-RBA    EQU $effc07       * buffer recepcion A  (lectura)
-ACR    EQU $effc09	 * control auxiliar
-IMR    EQU $effc0B       * mascara de interrupcion A (escritura)
-ISR    EQU $effc0B       * estado de interrupcion A (lectura)
+** Inicializar linea A
+                        MOVE.B    #%00010000,CRA      * Dar acceso a reg. modo 1
+                        MOVE.B    #%00000011,MR1A     * 8 bits por caracter
+                        MOVE.B    #%00000000,MR2A     * Desactivar el eco
+                        MOVE.B    #%00000101,CRA      * Modo full duplex
+                        MOVE.B    #%11001100,CSRA     * Velocidad = 38400 bps tx y rx
 
-MR1B   EQU $effc11       * modo B (escritura)
-MR2B   EQU $effc11       * modo B (2 escritura)
-CRB    EQU $effc15	 * control A (escritura)
-TBB    EQU $effc17       * buffer transmision B (escritura)
-RBB    EQU $effc17       * buffer recepcion B (lectura)
-SRB    EQU $effc13       * estado B (lectura)
-CSRB   EQU $effc13       * seleccion de reloj B (escritura)
+** Inicializar linea B
+                        MOVE.B    #%00010000,CRB      * Dar acceso a reg. modo 1
+                        MOVE.B    #%00000011,MR1B     * 8 bits por caracter
+                        MOVE.B    #%00000000,MR2B     * Desactivar el eco
+                        MOVE.B    #%00000101,CRB      * Modo full duplex
+                        MOVE.B    #%11001100,CSRB     * Velocidad = 38400 bps tx y rx
 
-IVR    EQU $effc19       * Registro vector de interrupcion
+** Inicializaciones globales
+                        MOVE.B    #%00000000,ACR      * Conjunto de veloc. 1
+                        MOVE.B    #$40,IVR            * Vector int 0x40
+                        MOVE.B    #%000100010,IMR     * Activar bits 1 y 5 para interr. RX
+                        MOVE.B    #%000100010,IMRDUP  * Actualiza copia del IMR
+                        MOVE.L    #RTI,$100           * Inserta dir de RTI en primer vector int
 
-CR     EQU $0D	         * Carriage Return
-LF     EQU $0A	         * Line Feed
-FLAGT  EQU 2	         * Flag de transmision
-FLAGR  EQU 0	         * Flag de recepcion
-TAMBUF EQU 2001          * Tamaño del buffer
 
-BR      INI_BUFS
+                        BR      INI_BUFS
+
+** Inicializacion de los contadores a cero y reseteo de A0
+                        MOVE.L    #0,D0
+                        MOVE.L    #0,A0
+                        RTS
+*************************** FIN INI **************************************************
+
+
 
 *************************** INI_BUFS *************************************************
-
 INI_BUFS:
-        MOVE.L  #BSC_A,BSCAN_A          * Inicia el puntero de extraccion
-        MOVE.L  #BSC_A,BSCAN_A+4        * Inicia el puntero de insercion
-        MOVE.L  #BSC_B,BSCAN_B          * Inicia el puntero de extraccion
-        MOVE.L  #BSC_B,BSCAN_B+4        * Inicia el puntero de insercion
-        MOVE.L  #BPR_A,BPRNT_A          * Inicia el puntero de extraccion
-        MOVE.L  #BPR_A,BPRNT_A+4        * Inicia el puntero de insercion
-        MOVE.L  #BPR_B,BPRNT_B          * Inicia el puntero de extraccion
-        MOVE.L  #BPR_B,BPRNT_B+4        * Inicia el puntero de insercion
+                        MOVE.L  #BSC_A,BSCAN_A          * Inicia el puntero de extraccion
+                        MOVE.L  #BSC_A,BSCAN_A+4        * Inicia el puntero de insercion
+                        MOVE.L  #BSC_B,BSCAN_B          * Inicia el puntero de extraccion
+                        MOVE.L  #BSC_B,BSCAN_B+4        * Inicia el puntero de insercion
+                        MOVE.L  #BPR_A,BPRNT_A          * Inicia el puntero de extraccion
+                        MOVE.L  #BPR_A,BPRNT_A+4        * Inicia el puntero de insercion
+                        MOVE.L  #BPR_B,BPRNT_B          * Inicia el puntero de extraccion
+                        MOVE.L  #BPR_B,BPRNT_B+4        * Inicia el puntero de insercion
 
-        RTS
-
+                        RTS
 *************************** FIN INI_BUFS *********************************************
-
 
 
 *************************** SCAN *****************************************************
