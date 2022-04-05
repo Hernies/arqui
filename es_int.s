@@ -118,8 +118,8 @@ PRINT:
                     MOVE.L      #$FFFFFFFF,D0 
                     BRA         FN_PRNT
                     **ESCRITURA**
-                    MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
-    PA:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
+     PA:            MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
+    BPA:            CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                     BEQ         FINP
                     MOVE        D1,D4
                     MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
@@ -132,8 +132,8 @@ PRINT:
                     ADD.L       #1,D5
                     BR          PA
            
-                    MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
-    PB:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
+     PB:            MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
+    BPB:            CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                     BEQ         FINP
                     MOVE        D0,D4
                     MOVE.L      (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
