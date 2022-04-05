@@ -104,8 +104,10 @@ PRINT:
                     CLR         D1
                     CLR         D2
                     CLR         D4
+                    CLR         D6
                     MOVE.L     8(A6),A1        * DIR BUFFER A A1
                     MOVE.L     12(A6),D1       * DESCRIPTOR A D1
+                    MOVE.L      D1,D6          * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
                     MOVE.L     14(A6),D2       * TAMAÑO A D2
                     **SELECCION DE BUFFER**
                     CMP.W       #0,D1
@@ -133,18 +135,19 @@ PRINT:
                     MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
     PB:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                     BEQ         FINP
-                    MOVE        D1,D4
-                    MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
+                    MOVE        D0,D4
+                    MOVE.L      (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
                     MOVE.L      #3,D0           * ESCCAR ESRIBA POR LTB
                     BSR         ESCCAR 
                     CMP.L       #$FFFFFFFF,D0   
                     BEQ         FINP
-                    MOVE.L      D4,D1     
+                    MOVE.L      D4,D0     
                     SUB.L       #1,D3
                     ADD.L       #1,D5
                     BR          PB
 
-    FINP:           CLR         D1  
+    FINP:           CLR         D1
+                    MOVE.L      D6,D1           * CARGO EN D1 EL VALOR QUE TENIA AL PRINCIPIO  
                     CMP         #0,D5
                     BEQ         FIN_PRNT
                     CMP.W       #0,D1
