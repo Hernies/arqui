@@ -301,15 +301,15 @@ PRINT:
                         **ESCRITURA**
         PA:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                         BEQ         FINP
-                        MOVE        D1,D4
+                        MOVE        D0,D4
                         MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
                         MOVE.L      #2,D0           * ESCCAR ESRIBA POR LTA
                         BSR         ESCCAR 
                         CMP.L       #$FFFFFFFF,D0   * MIRAMOS SI ESCCAR HA FALLADO SI?-> FIN
                         BEQ         FINP 
-                        MOVE.L      D4,D1    
+                        MOVE.L      D4,D0    
                         SUB.L       #1,D3
-                        ADD.L       #1,D5
+                        ADD.L       #1,D5           * CONTADOR++
                         BRA         PA
 
         PB:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
@@ -322,12 +322,12 @@ PRINT:
                         BEQ         FINP
                         MOVE.L      D4,D0     
                         SUB.L       #1,D3
-                        ADD.L       #1,D5
+                        ADD.L       #1,D5           * CONTADOR++
                         BRA         PB
 
         FINP:           CLR         D1
                         MOVE.L      D6,D1           * CARGO EN D1 EL VALOR QUE TENIA AL PRINCIPIO  
-                        CMP         #0,D5
+                        CMP         #0,D5           * 
                         BEQ         FN_PRNT
                         CMP.W       #0,D1
                         BEQ         IPA               
@@ -346,7 +346,7 @@ PRINT:
                         MOVE.B      D4,IMR 
                         BRA         FN_PRNT
                         **FIN PRINT** 
-        FN_PRNT:        MOVE.L D3,D0
+        FN_PRNT:        MOVE.L D5,D0
                         MOVEM.L	(A6)+,A0-A5/D1-D5                    
                         UNLK A6
                         RTS
