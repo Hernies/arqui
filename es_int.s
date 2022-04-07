@@ -309,7 +309,7 @@ PRINT:
                         BEQ         FINP 
                         MOVE.L      D4,D1    
                         SUB.L       #1,D3
-                        ADD.L       #1,D5
+                        ADD.L       #1,D5           * CONTADOR++
                         BRA         PA
 
         PB:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
@@ -322,12 +322,12 @@ PRINT:
                         BEQ         FINP
                         MOVE.L      D4,D0     
                         SUB.L       #1,D3
-                        ADD.L       #1,D5
+                        ADD.L       #1,D5           * CONTADOR++
                         BRA         PB
 
         FINP:           CLR         D1
                         MOVE.L      D6,D1           * CARGO EN D1 EL VALOR QUE TENIA AL PRINCIPIO  
-                        CMP         #0,D5
+                        CMP         #0,D5           * 
                         BEQ         FN_PRNT
                         CMP.W       #0,D1
                         BEQ         IPA               
