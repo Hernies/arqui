@@ -35,6 +35,7 @@ FLAGT  EQU 2	         * Flag de transmision
 FLAGR  EQU 0	         * Flag de recepcion
 TAMBUF EQU 2001
 
+IMRDUP  DC.B      0     * Duplicado (legible) del IM
 
 ** BUFERES INTERNOS
 SCAN_A  EQU     0
@@ -43,7 +44,7 @@ PRNT_A  EQU     2
 PRNT_B  EQU     3
 
 TAMBUF  EQU     2001
-
+R
 * Buffer de Scan A
 BSCAN_A         DC.L    BSC_A   * Puntero de extraccion
                 DC.L    BSC_A   * Puntero de insercion
@@ -88,10 +89,10 @@ INIT:
                         MOVE.B    #$40,IVR            * Vector int 0x40
                         MOVE.B    #%000100010,IMR     * Activar bits 1 y 5 para interr. RX
                         MOVE.B    #%000100010,IMRDUP  * Actualiza copia del IMR
-                        MOVE.L    #RTI,$100           * Inserta dir de RTI en primer vector int
+                        
 
 
-                        BR      INI_BUFS
+                        BSR      INI_BUFS
 
 ** Inicializacion de los contadores a cero y reseteo de A0
                         MOVE.L    #0,D0
@@ -178,7 +179,7 @@ LPRA:   CMP.L   #PRNT_A,D0
         BRA     CONTLEE
 LPRB:   MOVE.L  #BPRNT_B,A0
 
-CONTLEE:                                * A0 contiene la direcci�n del puntero de extracci�n
+CONTLEE:                        * A0 contiene la direcci�n del puntero de extracci�n
         MOVE.L  (A0),A1         * A1 contiene el puntero de extracci�n
         MOVE.L  4(A0),A2        * A2 contiene el puntero de inserci�n
         MOVE.L  A0,A3
@@ -210,77 +211,57 @@ SALLB:  MOVEM.L (A7)+,A0-A4/D2 *Restauramos los registros
 SCAN:
                         LINK A6,#-36
                         MOVEM.L	A0-A5/D1-D5,-(A6)
+
                         ** Reset de parámetros
                         CLR         D0          * * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA LECTURA)
                         CLR         D1
                         CLR         D2
                         CLR         D4
-                        CLR         D6
-                        MOVE.L     8(A6),A1        * DIR BUFFER A A1
-                        MOVE.L     12(A6),D1       * DESCRIPTOR A D1
-                        MOVE.L      D1,D6          * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
-                        MOVE.L     14(A6),D2       * TAMAÑO A D2
-                        MOVE.L 
+                        CLR         D5
+                        MOVE.L      8(A6),A1        * DIR BUFFER A A1
+                        MOVE.L      12(A6),D1       * DESCRIPTOR A D1
+                        MOVE.L      14(A6),D2       * TAMAÑO A D2
+                        MOVE.L      D1,D5           * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
+
+                        **COMPROBACIÓN DE TAMAÑO**
+                        CMP.W       D2,D0           * aprovecho que D0 está limpio para comprobar el tamaño
+                        BLE         FN_SCN          * si el tamaño es menor o igual a 0 me voy al final
+
+                        MOVE.L      #$FFFFFFFF,D4   * D4 = -1 para casos y comprobaciones
+
                         **SELECCION DE BUFFER**
                         CMP.W       #0,D1
                         BEQ         SA              *LEER POR A 
                         CMP.W       #1,D1
                         BEQ         SB              *ESCRIBIR POR B
+
                         **ERROR EN CARACTER**
-                        MOVE.L      #$FFFFFFFF,D0 
+                        MOVE.L      D4,D0 
                         BRA         FN_SCN
+
                         **LECTURA**
         
-        SA:             CMP.L       #0,D3           * SI SE HA LEIDO TODO -> FIN
-                        BEQ         FINS
-                        MOVE        D1,D4
-                        MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
-                        MOVE.L      #0,D0           * ESCCAR ESRIBA POR LTA
-                        BSR         LEECAR 
-                        CMP.L       #$FFFFFFFF,D0   * MIRAMOS SI LEECAR HA FALLADO SI?-> FIN
-                        BEQ         FINS
-                        MOVE.L      D4,D1    
-                        SUB.L       #1,D3
-                        ADD.L       #1,D5
-                        BR          SA
-           
-        SB:             CMP.L       #0,D3           * SI SE HA LEIDO TODO -> FIN
-                        BEQ         FINS
-                        MOVE        D0,D4
-                        MOVE.L      (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
-                        MOVE.L      #1,D0           * ESCCAR ESRIBA POR LTB
-                        BSR         LEECAR 
-                        CMP.L       #$FFFFFFFF,D0   * MIRAMOS SI LEECAR HA FALLADO SI?-> FIN
-                        BEQ         FINS
-                        MOVE.L      D4,D0     
-                        SUB.L       #1,D3
-                        ADD.L       #1,D5
-                        BR          SB
+        SA:             CMP.L       D2,D3           * He leido todo?
+                        BEQ         FN_SCN          * Si -> fin
+                        BSR         LEECAR          * D0=0 luego llamo a leecar sin problemas
+                        CMP.L       D0,D4           * Buffer vacio? (D0=FFFFFFFF?) 
+                        BEQ         FN_SCN          * Si -> fin
+                        MOVE.B      D0,(A5)+        * mover a buffer incrementando puntero
+                        ADD.L       #1,D3           * incremento contador de caracteres leidos
+                        BRA         SA
 
-        FINS:           CLR         D1
-                        MOVE.L      D6,D1           * CARGO EN D1 EL VALOR QUE TENIA AL PRINCIPIO  
-                        CMP         #0,D5
-                        BEQ         FIN_SCN
-                        CMP.W       #0,D1
-                        BEQ         IPA               
-                        CMP.W       #1,D1
-                        BEQ         IPB   
+        SB:             CMP.L       D2,D3           * SI SE HA LEIDO TODO -> FIN
+                        MOVE.L      D1,D0           * D0=descriptor     
+                        BSR         LEECAR     
+                        CMP.L       D0,D4           * Buffer vacio? (D0=FFFFFFFF?)
+                        BEQ         FN_SCN          * Si -> fin
+                        MOVE.B      D0,(A5)+        * mover a buffer incrementando puntero
+                        ADD.L       #1,D3           * incremento contador de caracteres leidos
+                        BRA         SB 
 
-                        **INTERRUPCIONES**
-        IPA:            MOVE.B      IMRDUP,D4
-                        BSET        #0,D4
-                        MOVE.B      D4,IMRDUP
-                        MOVE.B      D4, IMR 
-                        BRA         FN_SCN
+                        **FIN SCAN** 
 
-        IPB:            MOVE.B      IMRDUP,D4
-                        BSET        #4,D4
-                        MOVE.B      D4,IMRDUP
-                        MOVE.B      D4, IMR 
-                        BRA         FN_PRNT
-                        **FIN PRINT** 
-
-        FN_SCN:         MOVE.L D5,D0
+        FN_SCN:         MOVE.L D3,D0                * D0<-contador de caracteres leidos 
                         MOVEM.L	(A6)+,A0-A5/D1-D5                    
                         UNLK A6
                         RTS
@@ -305,11 +286,11 @@ PRINT:
                         CLR         D1
                         CLR         D2
                         CLR         D4
-                        CLR         D6
-                        MOVE.L     8(A6),A1        * DIR BUFFER A A1
-                        MOVE.L     12(A6),D1       * DESCRIPTOR A D1
-                        MOVE.L      D1,D6          * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
-                        MOVE.L     14(A6),D2       * TAMAÑO A D2
+                        CLR         D5
+                        MOVE.L      8(A6),A1        * DIR BUFFER A A1
+                        MOVE.L      12(A6),D1       * DESCRIPTOR A D1
+                        MOVE.L      D1,D5          * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
+                        MOVE.L      14(A6),D2       * TAMAÑO A D2
                         MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
                         **SELECCION DE BUFFER**
                         CMP.W       #0,D1
@@ -321,50 +302,42 @@ PRINT:
                         BRA         FN_PRNT
                         **ESCRITURA**
         PA:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
-                        BEQ         FINP
+                        BEQ         FN_PRNT
                         MOVE        D1,D4
                         MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
                         MOVE.L      #2,D0           * ESCCAR ESRIBA POR LTA
                         BSR         ESCCAR 
                         CMP.L       #$FFFFFFFF,D0   * MIRAMOS SI ESCCAR HA FALLADO SI?-> FIN
-                        BEQ         FINP 
+                        BEQ         IPA
                         MOVE.L      D4,D1    
                         SUB.L       #1,D3
                         ADD.L       #1,D5
-                        BR          PA
+                        BRA         PA
            
         PB:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
-                        BEQ         FINP
+                        BEQ         FN_PRNT
                         MOVE        D0,D4
                         MOVE.L      (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
                         MOVE.L      #3,D0           * ESCCAR ESRIBA POR LTB
                         BSR         ESCCAR 
                         CMP.L       #$FFFFFFFF,D0   
-                        BEQ         FINP
+                        BEQ         IPB
                         MOVE.L      D4,D0     
                         SUB.L       #1,D3
                         ADD.L       #1,D5
-                        BR          PB
+                        BRA         PB
 
-        FINP:           CLR         D1
-                        MOVE.L      D6,D1           * CARGO EN D1 EL VALOR QUE TENIA AL PRINCIPIO  
-                        CMP         #0,D5
-                        BEQ         FIN_PRNT
-                        CMP.W       #0,D1
-                        BEQ         IPA               
-                        CMP.W       #1,D1
-                        BEQ         IPB   
                         **INTERRUPCIONES**
         IPA:            MOVE.B      IMRDUP,D4
                         BSET        #0,D4
                         MOVE.B      D4,IMRDUP
-                        MOVE.B      D4, IMR 
+                        MOVE.B      D4,IMR 
                         BRA         FN_PRNT
 
         IPB:            MOVE.B      IMRDUP,D4
                         BSET        #4,D4
                         MOVE.B      D4,IMRDUP
-                        MOVE.B      D4, IMR 
+                        MOVE.B      D4,IMR 
                         BRA         FN_PRNT
                         **FIN PRINT** 
         FN_PRNT:        MOVE.L D5,D0
