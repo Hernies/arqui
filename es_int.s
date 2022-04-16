@@ -277,56 +277,48 @@ SCAN:
                         *   An -> REGISTRO DE DIRECCIONES 
                         *   Dn -> REGISTRO DE DATOS
 PRINT:
-                        LINK A6,#-36
-                        MOVEM.L	A0-A5/D1-D5,-(A6)
+                        LINK A6,#0
                         ** RESET DE PARAMETROS Y LECTURA DE PARAMETROS(BUFFER(ireccion) 8,DESCRIPTOR(Dato) 12,TAMAÑO(dato) 16)**
-                        CLR         D0              * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA ESCRITURA)
-                        CLR         D1
-                        CLR         D2
+                        CLR         D2              * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA ESCRITURA)
+                        CLR         D3
                         CLR         D4
+                        CLR         D5
                         CLR         D6
                         MOVE.L     8(A6),A1        * DIR BUFFER A A1
-                        MOVE.L     12(A6),D1       * DESCRIPTOR A D1
+                        MOVE.L     12(A6),D2       * DESCRIPTOR A D2
                         MOVE.L      D1,D6          * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
-                        MOVE.L     14(A6),D2       * TAMAÑO A D2
+                        MOVE.L     14(A6),D3       * TAMAÑO A D3
                         MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
                         **SELECCION DE BUFFER**
-                        CMP.W       #0,D1
+                        CMP.W       #0,D2
                         BEQ         PA              *ESCRIBIR POR A 
-                        CMP.W       #1,D1
+                        CMP.W       #1,D2
                         BEQ         PB              *ESCRIBIR POR B
                         **ERROR EN CARACTER**
                         MOVE.L      #$FFFFFFFF,D0 
-                        BRA         FN_PRNT
+                        BRA         FN_ERR
                         **ESCRITURA**
-        PA:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
+        PA:             MOVE.L      #2,D0           * ESCCAR ESRIBA POR LTA
+        BUC_PA:         CMP.L       D5,D3           * SI SE HA ESCRITO TODO -> FIN
                         BEQ         FINP
-                        MOVE        D0,D4
                         MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
-                        MOVE.L      #2,D0           * ESCCAR ESRIBA POR LTA
                         BSR         ESCCAR 
                         CMP.L       #$FFFFFFFF,D0   * MIRAMOS SI ESCCAR HA FALLADO SI?-> FIN
                         BEQ         FINP 
-                        MOVE.L      D4,D0    
-                        SUB.L       #1,D3
                         ADD.L       #1,D5           * CONTADOR++
-                        BRA         PA
+                        BRA         BUC_PA
 
-        PB:             CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
+        PB:             MOVE.L      #3,D0           * ESCCAR ESRIBA POR LTB
+        BUC_PB:         CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
                         BEQ         FINP
-                        MOVE        D0,D4
                         MOVE.L      (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
-                        MOVE.L      #3,D0           * ESCCAR ESRIBA POR LTB
                         BSR         ESCCAR 
                         CMP.L       #$FFFFFFFF,D0   
                         BEQ         FINP
-                        MOVE.L      D4,D0     
-                        SUB.L       #1,D3
                         ADD.L       #1,D5           * CONTADOR++
-                        BRA         PB
+                        BRA         BUC_PB
 
-        FINP:           CLR         D1
-                        MOVE.L      D6,D1           * CARGO EN D1 EL VALOR QUE TENIA AL PRINCIPIO  
+        FINP:           CLR         D6
                         CMP         #0,D5           * 
                         BEQ         FN_PRNT
                         CMP.W       #0,D1
@@ -347,8 +339,7 @@ PRINT:
                         BRA         FN_PRNT
                         **FIN PRINT** 
         FN_PRNT:        MOVE.L D5,D0
-                        MOVEM.L	(A6)+,A0-A5/D1-D5                    
-                        UNLK A6
+        FN_ERR:         UNLK A6
                         RTS
 *************************** FIN PRINT *****************************************************
 
