@@ -151,7 +151,7 @@ PRINT:
                         CLR			D1				* Limpio D1 para descriptor			
                         CLR			D2				* Limpio D2 para tamano
                         CLR			D3				* Contador a 0 
-                        CLR			D4				* Limpio D4 para gaurdar el SR
+                        CLR			D4				* Limpio D4 para guardar el SR
                         MOVE.L 			8(A6),A1 		* Buffer en A1 (marco de pila + buffer)	
                         MOVE.W			12(A6),D1		* D1 <- Descriptor
                         MOVE.W			14(A6),D2		* Tamano a D2 (marco de pila + buffer + descriptor + tamano )
