@@ -15,13 +15,13 @@ CSRA   EQU $effc03       * seleccion de reloj A (escritura)
 CRA    EQU $effc05       * control A (escritura)
 TBA    EQU $effc07       * buffer transmision A (escritura)
 RBA    EQU $effc07       * buffer recepcion A  (lectura)
-ACR    EQU $effc09	     * control auxiliar
+ACR    EQU $effc09	 * control auxiliar
 IMR    EQU $effc0B       * mascara de interrupcion A (escritura)
 ISR    EQU $effc0B       * estado de interrupcion A (lectura)
 
 MR1B   EQU $effc11       * modo B (escritura)
 MR2B   EQU $effc11       * modo B (2 escritura)
-CRB    EQU $effc15	     * control A (escritura)
+CRB    EQU $effc15	 * control A (escritura)
 TBB    EQU $effc17       * buffer transmision B (escritura)
 RBB    EQU $effc17       * buffer recepcion B (lectura)
 SRB    EQU $effc13       * estado B (lectura)
@@ -219,8 +219,18 @@ PRINT:
                         RTS
 *************************** FIN PRINT *****************************************************
 *************************** RTI ****************************************************
-RTI:
-        RTS
+* Primero comprobar ISR (estado de interrupción) -> 4 bits 1 para cada
+* Luego comprobar la línea, el modo (lectura o escritura)? -> me lo dice el 
+*       Si es recepción (lectura) entonces comprobar que FIFO !empty() 
+
+
+RTI:    LINK A6,#-36
+        MOVEM.L	A0-A5/D1-D5,-(A6)
+        * switch (IVR) {case 1:... , ...}
+
+        MOVEM.L	(A6)+,A0-A5/D1-D5                    
+        UNLK A6
+        RTE
 
 *************************** FIN RTI ****************************************************
 **************************** PROGRAMA PRINCIPAL ********************************
