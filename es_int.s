@@ -229,7 +229,7 @@ PRINT:
 *       Si es recepción (lectura) entonces comprobar que FIFO !empty() 
 
 *TODO Comprobar BUFFERS CORRECTOS
-*TODO sentido LINEA 275 aplicar mascara para que?
+*TODO sentido aplicar mascara? RTA/RTB_VACIO
 *TODO CLR vs MOVE.L #0,DX
 
 RTI:    LINK A6,#-44
