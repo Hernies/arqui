@@ -76,7 +76,7 @@ INIT:
 * Llama a LEECAR
 * 
 SCAN:
-                        LINK A6,#-36
+                        LINK A6,#-44
                         MOVEM.L	A0-A5/D1-D5,-(A6)
 
                         ** Reset de parámetros
@@ -144,69 +144,83 @@ SCAN:
                         *   An -> REGISTRO DE DIRECCIONES 
                         *   Dn -> REGISTRO DE DATOS
 PRINT:
-                        LINK A6,#0
-                        ** RESET DE PARAMETROS Y LECTURA DE PARAMETROS(BUFFER(ireccion) 8,DESCRIPTOR(Dato) 12,TAMAÑO(dato) 16)**
-                        CLR         D2              * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA ESCRITURA)
-                        CLR         D3
-                        CLR         D4
-                        CLR         D5
-                        CLR         D6
-                        MOVE.L     8(A6),A1        * DIR BUFFER A A1
-                        MOVE.L     12(A6),D2       * DESCRIPTOR A D2
-                        MOVE.L      D1,D6          * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
-                        MOVE.L     14(A6),D3       * TAMAÑO A D3
-                        MOVE.L      D2,D3           * COPIO EL TAMAÑO EN D3
-                        **SELECCION DE BUFFER**
-                        CMP.W       #0,D2
-                        BEQ         PA              *ESCRIBIR POR A 
-                        CMP.W       #1,D2
-                        BEQ         PB              *ESCRIBIR POR B
-                        **ERROR EN CARACTER**
-                        MOVE.L      #$FFFFFFFF,D0 
-                        BRA         FN_ERR
-                        **ESCRITURA**
-        PA:             MOVE.L      #2,D0           * ESCCAR ESRIBA POR LTA
-        BUC_PA:         CMP.L       D5,D3           * SI SE HA ESCRITO TODO -> FIN
-                        BEQ         FINP
-                        MOVE        (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
-                        BSR         ESCCAR 
-                        CMP.L       #$FFFFFFFF,D0   * MIRAMOS SI ESCCAR HA FALLADO SI?-> FIN
-                        BEQ         FINP 
-                        ADD.L       #1,D5           * CONTADOR++
-                        BRA         BUC_PA
+                        LINK A6,#-44
+                        MOVEM.L	A0-A5/D1-D5,-(A6)
+                * LIMPIO D1, D2, D3
+                        CLR 			D0
+                        CLR			D1				* Limpio D1 para descriptor			
+                        CLR			D2				* Limpio D2 para tamano
+                        CLR			D3				* Contador a 0 
+                        CLR			D4				* Limpio D4 para guardar el SR
+                        MOVE.L 			8(A6),A1 		* Buffer en A1 (marco de pila + buffer)	
+                        MOVE.W			12(A6),D1		* D1 <- Descriptor
+                        MOVE.W			14(A6),D2		* Tamano a D2 (marco de pila + buffer + descriptor + tamano )
+                
+                * COMPARACIONES PARA SABER SI ES A O B
+                
+                        CMP.W			#0,D1			* Si es 0 escritura es en A
+                        BEQ			A_PRINT
+                        CMP.W			#1,D1			* Si es 1 escritura es en B
+                        BEQ			B_PRINT
+                        
+        ERROR_PR: 
+                        MOVE.L			#$ffffffff,D0	* D0 = -1
+                        JMP			P_FIN 
+                
+        A_PRINT:
+                        MOVE.L			#2,D0			* Es 2 por el ESCCAR q si recibe 2 se va a buffer interno de transaminsion
+                        BRA			BUCLE_P
+        B_PRINT:
+                        MOVE.L			#3,D0
+                        JMP			BUCLE_P
+                        
+                *BUCLE DE PRINT:
+        BUCLE_P:
+                        CMP.L			D3,D2			* Si tamano == contador, hemos terminado
+                        BEQ			P_TER
+                        
+                        MOVE.B			(A1),D5				* Avanzo el buffer y guardo el dato en D5
+                        MOVE.L 			D3,-(A7)			* PUSH(D3)-> contador
+                        MOVE.L 			A1,-(A7)			* PUSH(A1)-> dir buffer
+                        MOVE.L 			D2,-(A7)			* PUSH(D2)-> tamano
+                        BSR			ESCCAR
+                        MOVE.L 			(A7)+,D2		    * POP(D2) <- tamano
+                        MOVE.L 			(A7)+,A1		    * POP(A1) <- dir buffer
+                        MOVE.L 			(A7)+,D3		    * POP(D3) <- conatdor
+                        ADD.L			#1,A1
+                        
+                        MOVE.L 			#$ffffffff,D6
+                        CMP.L			D6,D0 			*Esccar dice q el buffer esta lleno, hemos acabado		
+                        BEQ 			P_TER
+                        ADD.L			#1,D3			* Contador + 1
+                        JMP			BUCLE_P
+                        
+        P_TER:
+                        CLR			D4
+                        MOVE.W 			SR,D4 				* SR -> D4
+                        MOVE.W   		#$2700,SR 			* Inhibicion de interrupciones
 
-        PB:             MOVE.L      #3,D0           * ESCCAR ESRIBA POR LTB
-        BUC_PB:         CMP.L       #0,D3           * SI SE HA ESCRITO TODO -> FIN
-                        BEQ         FINP
-                        MOVE.L      (A1)+,D1        * COPIAMOS EN D1 EL BUFFER
-                        BSR         ESCCAR 
-                        CMP.L       #$FFFFFFFF,D0   
-                        BEQ         FINP
-                        ADD.L       #1,D5           * CONTADOR++
-                        BRA         BUC_PB
-
-        FINP:           CLR         D6
-                        CMP         #0,D5           * 
-                        BEQ         FN_PRNT
-                        CMP.W       #0,D1
-                        BEQ         IPA               
-                        CMP.W       #1,D1
-                        BEQ         IPB   
-                        **INTERRUPCIONES**
-        IPA:            MOVE.B      IMRDUP,D4
-                        BSET        #0,D4
-                        MOVE.B      D4,IMRDUP
-                        MOVE.B      D4,IMR 
-                        BRA         FN_PRNT
-
-        IPB:            MOVE.B      IMRDUP,D4
-                        BSET        #4,D4
-                        MOVE.B      D4,IMRDUP
-                        MOVE.B      D4,IMR 
-                        BRA         FN_PRNT
-                        **FIN PRINT** 
-        FN_PRNT:        MOVE.L D5,D0
-        FN_ERR:         UNLK A6
+                * COMPROBACIONES
+                        CMP.W			#0,D1			* Compruebo si estamos en A
+                        BEQ			A_SET
+                        
+                        CMP.W			#1,D1			* Compruebo si estamos en B
+                        BEQ			B_SET
+                
+        A_SET:							
+                        OR.B 			#%00000001,CPY_IMR
+                        MOVE.B 			CPY_IMR,IMR			* Interrupciones en A 
+                        MOVE.W 			D4,SR				* SR a valor original	
+                        JMP 			P_FIN
+        B_SET:							
+                        OR.B 			#%00010000,CPY_IMR
+                        MOVE.B 			CPY_IMR,IMR			* Interrupciones en A 
+                        MOVE.W 			D4,SR				* SR a valor original	
+                                
+        P_FIN:
+                        MOVE.L 			D3,D0
+                        MOVEM.L	                (A6)+,A0-A5/D1-D5                    
+                        UNLK A6
                         RTS
 *************************** FIN PRINT *****************************************************
 *************************** RTI ****************************************************
@@ -215,13 +229,87 @@ PRINT:
 *       Si es recepción (lectura) entonces comprobar que FIFO !empty() 
 
 
-RTI:    LINK A6,#-36
+RTI:    LINK A6,#-44
         MOVEM.L	A0-A5/D1-D5,-(A6)
         * switch (IVR) {case 1:... , ...}
 
-        MOVEM.L	(A6)+,A0-A5/D1-D5                    
-        UNLK A6
-        RTE
+       	COMP_PREV:      CLR 		D2
+                        CLR 		D3
+                        MOVE.B		IMRDUP,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
+                        MOVE.B 		ISR,D3  		* Guardo en D3 el valor del ISR (Estado de Interrupción)
+                        AND.B 		D3,D2			* Aplico la mascara
+
+                        BTST		#0,D2
+                        BNE		RTI_TRANS_A		**TRANSMISION -> LEECAR
+
+                        BTST		#1,D2
+                        BNE		RTI_RECEP_A		** RECEPCION -> ESCCAR
+
+                        BTST		#4,D2
+                        BNE		RTI_TR_B		**TRANSMISION -> LEECAR
+                        
+                        BTST		#5,D2
+                        BNE		RTI_RC_B		** RECEPCION -> ESCCAR
+
+        FIN_RTI:        MOVEM.L	(A6)+,A0-A5/D1-D5                      * si no hay interrupciones salimos de la RTI            
+                        UNLK A6
+                        RTE
+
+        RTI_TRANS_A:
+                        *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
+                        CLR 		D0
+                        MOVE.B		#%00000010,D0
+                        BSR		LEECAR			* Llamamos a leecar
+                        MOVE.L 		#$ffffffff,D4
+                        CMP.L		D4,D0			* Buffer interno vacio??
+                        BEQ		RTA_VACIO			
+                        MOVE.B		D0,TBA			* mete el caracter 
+                        JMP     	FIN_RTI	
+	RTA_VACIO:
+                        CLR 		D1
+                        CLR 		D3
+                        MOVE.B 		CPY_IMR,D1
+                        MOVE.B		#%11111110,D3
+                        AND.B 		D3,D1
+                        MOVE.B		D1,CPY_IMR
+                        MOVE.B		CPY_IMR,IMR
+                        JMP     	FIN_RTI		
+		
+	RTI_RECEP_A:
+                        CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
+                        CLR 		D1			* Pongo D1 a 0
+                        MOVE.B		RBA,D1			* Guardo los datos del buffer de recepcion de A en D1
+                        MOVE.L		#%00000000,D0
+                        BSR		ESCCAR			* LLamada a ESCCAR
+                        JMP		FIN_RTI		        * D0 != -1 a comparar otra vez
+
+	RTI_TR_B:
+                        *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
+                        CLR 		D0
+                        MOVE.B		#%00000011,D0
+                        BSR             LEECAR			* Llamamos a leecar
+                        MOVE.L 		#$ffffffff,D4
+                        CMP.L		D4,D0			* Buffer interno vacio??
+                        BEQ		RTB_VACIO			
+                        MOVE.B		D0,TBB			* mete el caracter 
+                        JMP     	FIN_RTI	
+	RTB_VACIO:
+                        CLR 		D1
+                        CLR 		D3
+                        MOVE.B 		CPY_IMR,D1
+                        MOVE.B		#%11101111,D3
+                        AND.B 		D3,D1
+                        MOVE.B		D1,CPY_IMR
+                        MOVE.B		CPY_IMR,IMR
+                        JMP     	FIN_RTI	
+
+	RTI_RC_B:
+                        CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
+                        CLR 		D1			* Pongo D1 a 0
+                        MOVE.B		RBB,D1			* Guardo los datos del buffer de recepcion de A en D1
+                        MOVE.L		#%00000001,D0
+                        BSR		ESCCAR			* LLamadita a ESCCAR		
+                        JMP		FIN_RTI			* D0 != -1 a comparar otra vez
 
 *************************** FIN RTI ****************************************************
 **************************** PROGRAMA PRINCIPAL ********************************
