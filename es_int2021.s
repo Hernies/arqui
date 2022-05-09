@@ -515,10 +515,8 @@ RTI:
 		BTST		#5,D2
 		BNE			RTI_RC_B			** RECEPCION -> ESCCAR
 
-	FIN_RTI:
-		MOVEM.L (A7)+,A0-A7				* Restauro los registros
-		MOVEM.L (A7)+,D0-D7
-		RTE
+		JMP			FIN_RTI				* 
+	
 	
 	RTI_TRANS_A:
 		*CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
@@ -575,6 +573,12 @@ RTI:
 		MOVE.L		#%00000001,D0
 		BSR			ESCCAR				* LLamadita a ESCCAR		
 		JMP			COMP_PREV			* D0 != -1 a comparar otra vez
+
+
+	FIN_RTI:
+		MOVEM.L (A7)+,A0-A7				* Restauro los registros
+		MOVEM.L (A7)+,D0-D7
+		RTE	
 
 ****************************** FIN RTI ************************************************************
 **************************** PROGRAMA PRINCIPAL ********************************
