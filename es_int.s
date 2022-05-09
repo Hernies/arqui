@@ -76,7 +76,7 @@ INIT:
 * Llama a LEECAR
 * 
 SCAN:
-                        LINK A6,#-36
+                        LINK A6,#-44
                         MOVEM.L	A0-A5/D1-D5,-(A6)
 
                         ** Reset de parámetros
@@ -144,7 +144,7 @@ SCAN:
                         *   An -> REGISTRO DE DIRECCIONES 
                         *   Dn -> REGISTRO DE DATOS
 PRINT:
-                        LINK A6,#-36
+                        LINK A6,#-44
                         MOVEM.L	A0-A5/D1-D5,-(A6)
                         ** RESET DE PARAMETROS Y LECTURA DE PARAMETROS(BUFFER(ireccion) 8,DESCRIPTOR(Dato) 12,TAMAÑO(dato) 16)**
                         CLR         D0              * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA ESCRITURA)
@@ -224,87 +224,87 @@ PRINT:
 *       Si es recepción (lectura) entonces comprobar que FIFO !empty() 
 
 
-RTI:    LINK A6,#-36
+RTI:    LINK A6,#-44
         MOVEM.L	A0-A5/D1-D5,-(A6)
         * switch (IVR) {case 1:... , ...}
 
        	COMP_PREV:      CLR 		D2
                         CLR 		D3
-                        MOVE.B		IMRDUP,D2			* Guardo en D2 el valor de la copia del IMR (mascara)
-                        MOVE.B 		ISR,D3				* Guardo en D3 el valor del ISR (Estado de Interrupción)
-                        AND.B 		D3,D2				* Aplico la mascara
+                        MOVE.B		IMRDUP,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
+                        MOVE.B 		ISR,D3  		* Guardo en D3 el valor del ISR (Estado de Interrupción)
+                        AND.B 		D3,D2			* Aplico la mascara
 
                         BTST		#0,D2
-                        BNE		RTI_TRANS_A			**TRANSMISION -> LEECAR
+                        BNE		RTI_TRANS_A		**TRANSMISION -> LEECAR
 
                         BTST		#1,D2
-                        BNE		RTI_RECEP_A			** RECEPCION -> ESCCAR
+                        BNE		RTI_RECEP_A		** RECEPCION -> ESCCAR
 
                         BTST		#4,D2
-                        BNE		RTI_TR_B			**TRANSMISION -> LEECAR
+                        BNE		RTI_TR_B		**TRANSMISION -> LEECAR
                         
                         BTST		#5,D2
-                        BNE		RTI_RC_B			** RECEPCION -> ESCCAR
+                        BNE		RTI_RC_B		** RECEPCION -> ESCCAR
 
-        FIN_RTI:        MOVEM.L	(A6)+,A0-A5/D1-D5                    
+        FIN_RTI:        MOVEM.L	(A6)+,A0-A5/D1-D5                      * si no hay interrupciones salimos de la RTI            
                         UNLK A6
                         RTE
 
         RTI_TRANS_A:
-		*CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
-		CLR 		D0
-		MOVE.B		#%00000010,D0
-		BSR			LEECAR				* Llamamos a leecar
-		MOVE.L 		#$ffffffff,D4
-		CMP.L		D4,D0				* Buffer interno vacio??
-		BEQ			RTA_VACIO			
-		MOVE.B		D0,TBA				* mete el caracter 
-		JMP     	COMP_PREV	
+                        *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
+                        CLR 		D0
+                        MOVE.B		#%00000010,D0
+                        BSR		LEECAR			* Llamamos a leecar
+                        MOVE.L 		#$ffffffff,D4
+                        CMP.L		D4,D0			* Buffer interno vacio??
+                        BEQ		RTA_VACIO			
+                        MOVE.B		D0,TBA			* mete el caracter 
+                        JMP     	FIN_RTI	
 	RTA_VACIO:
-        CLR 		D1
-		CLR 		D3
-		MOVE.B 		CPY_IMR,D1
-		MOVE.B		#%11111110,D3
-		AND.B 		D3,D1
-		MOVE.B		D1,CPY_IMR
-		MOVE.B		CPY_IMR,IMR
-        JMP     	COMP_PREV		
+                        CLR 		D1
+                        CLR 		D3
+                        MOVE.B 		CPY_IMR,D1
+                        MOVE.B		#%11111110,D3
+                        AND.B 		D3,D1
+                        MOVE.B		D1,CPY_IMR
+                        MOVE.B		CPY_IMR,IMR
+                        JMP     	FIN_RTI		
 		
 	RTI_RECEP_A:
-		CLR			D0					* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
-		CLR 		D1					* Pongo D1 a 0
-		MOVE.B		RBA,D1				* Guardo los datos del buffer de recepcion de A en D1
-		MOVE.L		#%00000000,D0
-		BSR			ESCCAR				* LLamadita a ESCCAR
-		JMP			COMP_PREV			* D0 != -1 a comparar otra vez
+                        CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
+                        CLR 		D1			* Pongo D1 a 0
+                        MOVE.B		RBA,D1			* Guardo los datos del buffer de recepcion de A en D1
+                        MOVE.L		#%00000000,D0
+                        BSR		ESCCAR			* LLamada a ESCCAR
+                        JMP		FIN_RTI		        * D0 != -1 a comparar otra vez
 
 	RTI_TR_B:
-		*CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
-		CLR 		D0
-		MOVE.B		#%00000011,D0
-		BSR			LEECAR				* Llamamos a leecar
-		MOVE.L 		#$ffffffff,D4
-		CMP.L		D4,D0				* Buffer interno vacio??
-		BEQ			RTB_VACIO			
-		MOVE.B		D0,TBB				* mete el caracter 
-		JMP     	COMP_PREV	
+                        *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
+                        CLR 		D0
+                        MOVE.B		#%00000011,D0
+                        BSR             LEECAR			* Llamamos a leecar
+                        MOVE.L 		#$ffffffff,D4
+                        CMP.L		D4,D0			* Buffer interno vacio??
+                        BEQ		RTB_VACIO			
+                        MOVE.B		D0,TBB			* mete el caracter 
+                        JMP     	FIN_RTI	
 	RTB_VACIO:
-        CLR 		D1
-		CLR 		D3
-		MOVE.B 		CPY_IMR,D1
-		MOVE.B		#%11101111,D3
-		AND.B 		D3,D1
-		MOVE.B		D1,CPY_IMR
-		MOVE.B		CPY_IMR,IMR
-        JMP     	COMP_PREV	
+                        CLR 		D1
+                        CLR 		D3
+                        MOVE.B 		CPY_IMR,D1
+                        MOVE.B		#%11101111,D3
+                        AND.B 		D3,D1
+                        MOVE.B		D1,CPY_IMR
+                        MOVE.B		CPY_IMR,IMR
+                        JMP     	FIN_RTI	
 
 	RTI_RC_B:
-		CLR			D0					* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
-		CLR 		D1					* Pongo D1 a 0
-		MOVE.B		RBB,D1				* Guardo los datos del buffer de recepcion de A en D1
-		MOVE.L		#%00000001,D0
-		BSR			ESCCAR				* LLamadita a ESCCAR		
-		JMP			COMP_PREV			* D0 != -1 a comparar otra vez
+                        CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
+                        CLR 		D1			* Pongo D1 a 0
+                        MOVE.B		RBB,D1			* Guardo los datos del buffer de recepcion de A en D1
+                        MOVE.L		#%00000001,D0
+                        BSR		ESCCAR			* LLamadita a ESCCAR		
+                        JMP		FIN_RTI			* D0 != -1 a comparar otra vez
 
 *************************** FIN RTI ****************************************************
 **************************** PROGRAMA PRINCIPAL ********************************
