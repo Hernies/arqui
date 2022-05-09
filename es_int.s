@@ -208,13 +208,13 @@ PRINT:
                         BEQ			B_SET
                 
         A_SET:							
-                        OR.B 			#%00000001,CPY_IMR
-                        MOVE.B 			CPY_IMR,IMR			* Interrupciones en A 
+                        OR.B 			#%00000001,IMRDUP
+                        MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
                         MOVE.W 			D4,SR				* SR a valor original	
                         JMP 			P_FIN
         B_SET:							
-                        OR.B 			#%00010000,CPY_IMR
-                        MOVE.B 			CPY_IMR,IMR			* Interrupciones en A 
+                        OR.B 			#%00010000,IMRDUP
+                        MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
                         MOVE.W 			D4,SR				* SR a valor original	
                                 
         P_FIN:
@@ -268,11 +268,11 @@ RTI:    LINK A6,#-44
 	RTA_VACIO:
                         CLR 		D1
                         CLR 		D3
-                        MOVE.B 		CPY_IMR,D1
+                        MOVE.B 		IMRDUP,D1
                         MOVE.B		#%11111110,D3
                         AND.B 		D3,D1
-                        MOVE.B		D1,CPY_IMR
-                        MOVE.B		CPY_IMR,IMR
+                        MOVE.B		D1,IMRDUP
+                        MOVE.B		IMRDUP,IMR
                         JMP     	FIN_RTI		
 		
 	RTI_RECEP_A:
@@ -296,11 +296,11 @@ RTI:    LINK A6,#-44
 	RTB_VACIO:
                         CLR 		D1
                         CLR 		D3
-                        MOVE.B 		CPY_IMR,D1
+                        MOVE.B 		IMRDUP,D1
                         MOVE.B		#%11101111,D3
                         AND.B 		D3,D1
-                        MOVE.B		D1,CPY_IMR
-                        MOVE.B		CPY_IMR,IMR
+                        MOVE.B		D1,IMRDUP
+                        MOVE.B		IMRDUP,IMR
                         JMP     	FIN_RTI	
 
 	RTI_RC_B:
