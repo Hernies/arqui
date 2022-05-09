@@ -15,13 +15,13 @@ CSRA   EQU $effc03       * seleccion de reloj A (escritura)
 CRA    EQU $effc05       * control A (escritura)
 TBA    EQU $effc07       * buffer transmision A (escritura)
 RBA    EQU $effc07       * buffer recepcion A  (lectura)
-ACR    EQU $effc09	     * control auxiliar
+ACR    EQU $effc09	 * control auxiliar
 IMR    EQU $effc0B       * mascara de interrupcion A (escritura)
 ISR    EQU $effc0B       * estado de interrupcion A (lectura)
 
 MR1B   EQU $effc11       * modo B (escritura)
 MR2B   EQU $effc11       * modo B (2 escritura)
-CRB    EQU $effc15	     * control A (escritura)
+CRB    EQU $effc15	 * control A (escritura)
 TBB    EQU $effc17       * buffer transmision B (escritura)
 RBB    EQU $effc17       * buffer recepcion B (lectura)
 SRB    EQU $effc13       * estado B (lectura)
@@ -37,35 +37,6 @@ TAMBUF EQU 2001
 
 IMRDUP  DC.B      0     * Duplicado (legible) del IM
 
-** BUFERES INTERNOS
-SCAN_A  EQU     0
-SCAN_B  EQU     1
-PRNT_A  EQU     2
-PRNT_B  EQU     3
-
-TAMBUF  EQU     2001
-R
-* Buffer de Scan A
-BSCAN_A         DC.L    BSC_A   * Puntero de extraccion
-                DC.L    BSC_A   * Puntero de insercion
-BSC_A           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
-
-* Buffer de Scan B
-BSCAN_B         DC.L    BSC_B   * Puntero de extraccion
-                DC.L    BSC_B   * Puntero de insercion
-BSC_B           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
-
-* Buffer de Print A
-BPRNT_A         DC.L    BPR_A   * Puntero de extraccion
-                DC.L    BPR_A   * Puntero de insercion
-BPR_A           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
-
-* Buffer de Print B
-BPRNT_B         DC.L    BPR_B   * Puntero de extraccion
-                DC.L    BPR_B   * Puntero de insercion
-BPR_B           DS.B    TAMBUF  * BUFFER DE 2001 BYTES
-
-                DC.W 1
                 
 **************************** INIT ****************************************************
 INIT:
@@ -99,110 +70,6 @@ INIT:
                         MOVE.L    #0,A0
                         RTS
 *************************** FIN INI **************************************************
-
-
-
-*************************** INI_BUFS *************************************************
-INI_BUFS:
-                        MOVE.L  #BSC_A,BSCAN_A          * Inicia el puntero de extraccion
-                        MOVE.L  #BSC_A,BSCAN_A+4        * Inicia el puntero de insercion
-                        MOVE.L  #BSC_B,BSCAN_B          * Inicia el puntero de extraccion
-                        MOVE.L  #BSC_B,BSCAN_B+4        * Inicia el puntero de insercion
-                        MOVE.L  #BPR_A,BPRNT_A          * Inicia el puntero de extraccion
-                        MOVE.L  #BPR_A,BPRNT_A+4        * Inicia el puntero de insercion
-                        MOVE.L  #BPR_B,BPRNT_B          * Inicia el puntero de extraccion
-                        MOVE.L  #BPR_B,BPRNT_B+4        * Inicia el puntero de insercion
-
-                        RTS
-*************************** FIN INI_BUFS *********************************************
-
-
-*************************** ESCCAR *********************************************************
-
-ESCCAR:
-        MOVEM.L A0-A4/D2,-(A7)       * Guarda todos los registros en la pila
-
-        CMP.L   #SCAN_A,D0
-        BNE     ESCB
-        MOVE.L  #BSCAN_A,A0
-        BRA     CONTESC
-ESCB:   CMP.L   #SCAN_B,D0
-        BNE     EPRA
-        MOVE.L  #BSCAN_B,A0
-        BRA     CONTESC
-EPRA:   CMP.L   #PRNT_A,D0
-        BNE     EPRB
-        MOVE.L  #BPRNT_A,A0
-        BRA     CONTESC
-EPRB:   MOVE.L  #BPRNT_B,A0
-
-CONTESC: EOR.L D0,D0            * A0 contiene la direcci�n del puntero de extracci�n
-        MOVE.L  (A0),A1         * A1 contiene el puntero de extracci�n
-        MOVE.L  4(A0),A2        * A2 contiene el puntero de inserci�n
-		        MOVE.L  A0,A3
-        ADD.L   #8,A3           * A3 contiene el comienzo del buffer
-        MOVE.L  A3,D2
-        ADD.L   #TAMBUF,D2
-        MOVE.L  D2,A4           * A4 contiene el final del buffer (1 m�s all�)
-
-        MOVE.B  D1,(A2)+                * Inserta el caracter
-        CMP.L   A2,A4           * Si son iguales  ha llegado al final del buffer
-        BNE     ACPUNE
-        MOVE.L  A3,A2           * Se pone el puntero de inserci�n al comienzo del buffer
-ACPUNE: CMP.L   A1,A2           * Si son iguales se ha llenado el buffer
-        BEQ     LLENO
-        MOVE.L  A2,4(A0)        * Actualiza el puntero de inserci�n
-        BRA     FINEB
-LLENO:  MOVE.L  #-1,D0          * Se devuelve un -1 en D0
-FINEB:  MOVEM.L       (A7)+,A0-A4/D2 *Restauramos los registros
-        RTS
-
-*************************** FIN ESCCAR *****************************************************
-
-
-*************************** LEECAR *********************************************************
-
-LEECAR:
-        MOVEM.L A0-A4/D2,-(A7)       * Guarda todos los registros en la pila
-
-        CMP.L   #SCAN_A,D0
-        BNE     LSCB
-        MOVE.L  #BSCAN_A,A0
-        BRA     CONTLEE
-LSCB:   CMP.L   #SCAN_B,D0
-        BNE     LPRA
-        MOVE.L  #BSCAN_B,A0
-        BRA     CONTLEE
-LPRA:   CMP.L   #PRNT_A,D0
-        BNE     LPRB
-        MOVE.L  #BPRNT_A,A0
-        BRA     CONTLEE
-LPRB:   MOVE.L  #BPRNT_B,A0
-
-CONTLEE:                        * A0 contiene la direcci�n del puntero de extracci�n
-        MOVE.L  (A0),A1         * A1 contiene el puntero de extracci�n
-        MOVE.L  4(A0),A2        * A2 contiene el puntero de inserci�n
-        MOVE.L  A0,A3
-        ADD.L   #8,A3           * A3 contiene el comienzo del buffer
-        MOVE.L  A3,D2
-        ADD.L   #TAMBUF,D2
-        MOVE.L  D2,A4           * A4 contiene el final del buffer (1 m�s all�)
-
-        CMP.L   A1,A2           * Si son iguales, el buffer est� vac�o
-        BNE     NOVAC
-        MOVE.L  #-1,D0
-        BRA     SALLB
-
-NOVAC:  MOVE.B  (A1)+,D0                * Extrae el caracter
-        CMP.L   A1,A4           * Si son iguales  ha llegado al final del buffer
-        BNE     ACPUNL
-        MOVE.L  A3,A1           * Se pone el puntero de extracci�n al comienzo del buffer
-ACPUNL: MOVE.L  A1,(A0)         * Actualiza el puntero de extracci�n
-
-SALLB:  MOVEM.L (A7)+,A0-A4/D2 *Restauramos los registros
-        RTS
-
-*************************** FIN LEECAR *****************************************************
 
 *************************** SCAN *****************************************************
 ** Lee los caracteres que entran y los copia al buffer indicado
@@ -342,7 +209,21 @@ PRINT:
         FN_ERR:         UNLK A6
                         RTS
 *************************** FIN PRINT *****************************************************
+*************************** RTI ****************************************************
+* Primero comprobar ISR (estado de interrupción) -> 4 bits 1 para cada
+* Luego comprobar la línea, el modo (lectura o escritura)? -> me lo dice el 
+*       Si es recepción (lectura) entonces comprobar que FIFO !empty() 
 
+
+RTI:    LINK A6,#-36
+        MOVEM.L	A0-A5/D1-D5,-(A6)
+        * switch (IVR) {case 1:... , ...}
+
+        MOVEM.L	(A6)+,A0-A5/D1-D5                    
+        UNLK A6
+        RTE
+
+*************************** FIN RTI ****************************************************
 **************************** PROGRAMA PRINCIPAL ********************************
 
 BUFFER:  DS.B 2100 * Buffer para lectura y escritura de caracteres
@@ -407,3 +288,4 @@ ILLEGAL_IN: BREAK * Illegal instruction handler
         NOP
 PRIV_VIOLT: BREAK * Privilege violation handler
         NOP
+INCLUDE bib_aux.s        

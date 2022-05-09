@@ -62,3 +62,4 @@ ILLEGAL_IN: BREAK * Illegal instruction handler
         NOP
 PRIV_VIOLT: BREAK * Privilege violation handler
         NOP
+INCLUDE bib_aux.s
