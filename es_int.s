@@ -208,13 +208,13 @@ PRINT:
                         BEQ			B_SET
                 
         A_SET:							
-                        OR.B 			#%00000001,CPY_IMR
-                        MOVE.B 			CPY_IMR,IMR			* Interrupciones en A 
+                        OR.B 			#%00000001,IMRDUP
+                        MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
                         MOVE.W 			D4,SR				* SR a valor original	
                         JMP 			P_FIN
         B_SET:							
-                        OR.B 			#%00010000,CPY_IMR
-                        MOVE.B 			CPY_IMR,IMR			* Interrupciones en A 
+                        OR.B 			#%00010000,IMRDUP
+                        MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
                         MOVE.W 			D4,SR				* SR a valor original	
                                 
         P_FIN:
@@ -228,6 +228,9 @@ PRINT:
 * Luego comprobar la línea, el modo (lectura o escritura)? -> me lo dice el 
 *       Si es recepción (lectura) entonces comprobar que FIFO !empty() 
 
+*TODO Comprobar BUFFERS CORRECTOS
+*TODO sentido aplicar mascara? RTA/RTB_VACIO
+*TODO CLR vs MOVE.L #0,DX
 
 RTI:    LINK A6,#-44
         MOVEM.L	A0-A5/D1-D5,-(A6)
@@ -251,7 +254,7 @@ RTI:    LINK A6,#-44
                         BTST		#5,D2
                         BNE		RTI_RC_B		** RECEPCION -> ESCCAR
 
-        FIN_RTI:        MOVEM.L	(A6)+,A0-A5/D1-D5                      * si no hay interrupciones salimos de la RTI            
+        FIN_RTI:        MOVEM.L	(A6)+,A0-A5/D1-D5               * si no hay interrupciones salimos de la RTI            
                         UNLK A6
                         RTE
 
@@ -268,18 +271,17 @@ RTI:    LINK A6,#-44
 	RTA_VACIO:
                         CLR 		D1
                         CLR 		D3
-                        MOVE.B 		CPY_IMR,D1
+                        MOVE.B 		IMRDUP,D1
                         MOVE.B		#%11111110,D3
-                        AND.B 		D3,D1
-                        MOVE.B		D1,CPY_IMR
-                        MOVE.B		CPY_IMR,IMR
+                        AND.B 		D3,D1                   * porque aplicamos máscara?
+                        MOVE.B		D1,IMRDUP
+                        MOVE.B		IMRDUP,IMR
                         JMP     	FIN_RTI		
 		
 	RTI_RECEP_A:
                         CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
                         CLR 		D1			* Pongo D1 a 0
                         MOVE.B		RBA,D1			* Guardo los datos del buffer de recepcion de A en D1
-                        MOVE.L		#%00000000,D0
                         BSR		ESCCAR			* LLamada a ESCCAR
                         JMP		FIN_RTI		        * D0 != -1 a comparar otra vez
 
@@ -296,11 +298,11 @@ RTI:    LINK A6,#-44
 	RTB_VACIO:
                         CLR 		D1
                         CLR 		D3
-                        MOVE.B 		CPY_IMR,D1
+                        MOVE.B 		IMRDUP,D1
                         MOVE.B		#%11101111,D3
                         AND.B 		D3,D1
-                        MOVE.B		D1,CPY_IMR
-                        MOVE.B		CPY_IMR,IMR
+                        MOVE.B		D1,IMRDUP
+                        MOVE.B		IMRDUP,IMR
                         JMP     	FIN_RTI	
 
 	RTI_RC_B:
