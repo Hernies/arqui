@@ -37,7 +37,8 @@ TAMBUF EQU 2001
 
 IMRDUP  DC.B      0     * Duplicado (legible) del IM
 
-                
+INCLUDE bib_aux.s
+
 **************************** INIT ****************************************************
 INIT:
 
@@ -378,4 +379,3 @@ ILLEGAL_IN: BREAK * Illegal instruction handler
         NOP
 PRIV_VIOLT: BREAK * Privilege violation handler
         NOP
-INCLUDE bib_aux.s        
