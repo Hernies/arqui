@@ -97,9 +97,9 @@ SCAN:
                         CLR         D4
                         CLR         D5
                         MOVE.L      8(A6),A1        * DIR BUFFER A A1
-                        MOVE.L      12(A6),D1       * DESCRIPTOR A D1
-                        MOVE.L      14(A6),D2       * TAMAÑO A D2
-                        MOVE.L      D1,D5           * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
+                        MOVE.W      12(A6),D1       * DESCRIPTOR A D1
+                        MOVE.W      14(A6),D2       * TAMAÑO A D2
+                        MOVE.W      D1,D5           * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
 
                         **COMPROBACIÓN DE TAMAÑO**
                         CMP.W       D2,D0           * aprovecho que D0 está limpio para comprobar el tamaño
