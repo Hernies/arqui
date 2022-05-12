@@ -77,8 +77,18 @@ INIT:
 * 
 SCAN:
                         LINK A6,#-44
-                        MOVEM.L	A0-A5/D1-D5,-(A6)
-
+                        *MOVEM.L	A0-A5/D1-D5,-(A6)
+                        MOVE.L          D1,-4(A6)
+                        MOVE.L          D2,-8(A6)
+                        MOVE.L          D3,-12(A6)
+                        MOVE.L          D4,-16(A6)
+                        MOVE.L          D5,-20(A6)
+                        MOVE.L          A0,-24(A6)
+                        MOVE.L          A1,-28(A6)
+                        MOVE.L          A2,-32(A6)
+                        MOVE.L          A3,-36(A6)
+                        MOVE.L          A4,-40(A6)
+                        MOVE.L          A5,-44(A6)
                         ** Reset de parámetros
                         CLR         D0          * * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA LECTURA)
                         CLR         D1
@@ -130,7 +140,18 @@ SCAN:
                         **FIN SCAN** 
 
         FN_SCN:         MOVE.L D3,D0                * D0<-contador de caracteres leidos 
-                        MOVEM.L	(A6)+,A0-A5/D1-D5                    
+                        MOVE.L          -4(A6),D1
+                        MOVE.L          -8(A6),D2
+                        MOVE.L          -12(A6),D3
+                        MOVE.L          -16(A6),D4
+                        MOVE.L          -20(A6),D5
+                        MOVE.L          -24(A6),A0
+                        MOVE.L          -28(A6),A1
+                        MOVE.L          -32(A6),A2 
+                        MOVE.L          -36(A6),A3 
+                        MOVE.L          -40(A6),A4 
+                        MOVE.L          -44(A6),A5
+                        *MOVEM.L	(A6)+,A0-A5/D1-D5                    
                         UNLK A6
                         RTS
 
@@ -144,8 +165,20 @@ SCAN:
                         *   An -> REGISTRO DE DIRECCIONES 
                         *   Dn -> REGISTRO DE DATOS
 PRINT:
-                        LINK A6,#-44
-                        MOVEM.L	A0-A5/D1-D5,-(A6)
+                        LINK A6,#-48
+                        *MOVEM.L	A0-A5/D1-D5,-(A6)
+                        MOVE.L          D1,-4(A6)
+                        MOVE.L          D2,-8(A6)
+                        MOVE.L          D3,-12(A6)
+                        MOVE.L          D4,-16(A6)
+                        MOVE.L          D5,-20(A6)
+                        MOVE.L          D6,-24(A6)
+                        MOVE.L          A0,-28(A6)
+                        MOVE.L          A1,-32(A6)
+                        MOVE.L          A2,-36(A6)
+                        MOVE.L          A3,-40(A6)
+                        MOVE.L          A4,-44(A6)
+                        MOVE.L          A5,-48(A6)
                 * LIMPIO D1, D2, D3
                         CLR 			D0
                         CLR			D1				* Limpio D1 para descriptor			
@@ -219,7 +252,19 @@ PRINT:
                                 
         P_FIN:
                         MOVE.L 			D3,D0
-                        MOVEM.L	                (A6)+,A0-A5/D1-D5                    
+                        *MOVEM.L	                (A6)+,A0-A5/D1-D5                    
+                        MOVE.L          -4(A6),D1
+                        MOVE.L          -8(A6),D2
+                        MOVE.L          -12(A6),D3
+                        MOVE.L          -16(A6),D4
+                        MOVE.L          -20(A6),D5
+                        MOVE.L          -24(A6),D6
+                        MOVE.L          -28(A6),A0
+                        MOVE.L          -32(A6),A1
+                        MOVE.L          -36(A6),A2 
+                        MOVE.L          -40(A6),A3 
+                        MOVE.L          -44(A6),A4 
+                        MOVE.L          -48(A6),A5
                         UNLK A6
                         RTS
 *************************** FIN PRINT *****************************************************
@@ -233,7 +278,21 @@ PRINT:
 *TODO CLR vs MOVE.L #0,DX
 
 RTI:    LINK A6,#-44
-        MOVEM.L	A0-A5/D1-D5,-(A6)
+        *MOVEM.L	A0-A5/D0-D4,-(A6)
+
+        MOVE.L          D0,-4(A6)
+        MOVE.L          D1,-8(A6)
+        MOVE.L          D2,-12(A6)
+        MOVE.L          D3,-16(A6)
+        MOVE.L          D4,-20(A6)
+        MOVE.L          A0,-24(A6)
+        MOVE.L          A1,-28(A6)
+        MOVE.L          A2,-32(A6)
+        MOVE.L          A3,-36(A6)
+        MOVE.L          A4,-40(A6)
+        MOVE.L          A5,-44(A6)
+
+
         * switch (IVR) {case 1:... , ...}
 
        	COMP_PREV:      CLR 		D2
@@ -254,7 +313,18 @@ RTI:    LINK A6,#-44
                         BTST		#5,D2
                         BNE		RTI_RC_B		** RECEPCION -> ESCCAR
 
-        FIN_RTI:        MOVEM.L	(A6)+,A0-A5/D1-D5               * si no hay interrupciones salimos de la RTI            
+        FIN_RTI:        MOVE.L          -4(A6),D0 
+                        MOVE.L          -8(A6),D1
+                        MOVE.L          -12(A6),D2
+                        MOVE.L          -16(A6),D3
+                        MOVE.L          -20(A6),D4
+                        MOVE.L          -24(A6),A0
+                        MOVE.L          -28(A6),A1
+                        MOVE.L          -32(A6),A2 
+                        MOVE.L          -36(A6),A3 
+                        MOVE.L          -40(A6),A4 
+                        MOVE.L          -44(A6),A5
+                        *MOVEM.L	(A6)+,A0-A5/D0-D4               * si no hay interrupciones salimos de la RTI            
                         UNLK A6
                         RTE
 
