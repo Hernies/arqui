@@ -16,6 +16,12 @@ El valor de este registro no es correcto. El que genera la prueba es
 y el que debe generar es
 	REGISTRO D0: 00000000.
 
+TRAZA: 
+comprobado marco de pila antes de entrar 8000, despuÃ©s 8000
+D0 tiene un move #0 antes de salir
+He probado a introducir 1's y luego borrarlos con un move 0, sigue funcionando correctamente
+el vector se introduce 0x40 = 64
+
 Identificador de la prueba: pr17es_int
 	Entrada/Salida por interrupciones.
 	La subrutina SCAN falla cuando se le pasa un descriptor
@@ -26,7 +32,7 @@ El valor de este registro no es correcto. El que genera la prueba es
 y el que debe generar es
 	REGISTRO D0: ffffffff.
 
-Identificador de la prueba: pr18es_int
+Identificador de la prueba: pr18es_int 
 	Entrada/Salida por interrupciones.
 	La subrutina SCAN falla cuando se lee un bloque de 10 caracteres
 del puerto A. El bloque esta compuesto por el bloque 0123456789. Se
@@ -446,7 +452,7 @@ y el que debe generar es
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -470,7 +476,7 @@ y el que debe generar es
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -513,7 +519,7 @@ y el que debe generar es
 
 La salida del periferico B no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto B que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -556,7 +562,7 @@ y el que debe generar es
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -599,7 +605,7 @@ y el que debe generar es
 
 La salida del periferico B no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto B que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -642,7 +648,7 @@ y el que debe generar es
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -685,7 +691,7 @@ y el que debe generar es
 
 La salida del periferico B no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto B que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -728,7 +734,7 @@ y el que debe generar es
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -771,7 +777,7 @@ y el que debe generar es
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -802,7 +808,7 @@ El resultado correcto deberia ser:
 
 La salida del periferico B no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto B que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -845,7 +851,7 @@ y el que debe generar es
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -876,7 +882,7 @@ El resultado correcto deberia ser:
 
 La salida del periferico B no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto B que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -919,7 +925,7 @@ y el que debe generar es
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -950,7 +956,7 @@ El resultado correcto deberia ser:
 
 La salida del periferico B no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto B que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -1020,7 +1026,7 @@ El contenido correcto deberia ser:
 
 La salida del periferico B no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto B que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -1090,7 +1096,7 @@ El contenido correcto deberia ser:
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -1160,7 +1166,7 @@ El contenido correcto deberia ser:
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -1230,7 +1236,7 @@ El contenido correcto deberia ser:
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -1261,7 +1267,7 @@ El resultado correcto deberia ser:
 
 La salida del periferico B no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto B que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -1331,7 +1337,7 @@ El contenido correcto deberia ser:
 
 La salida del periferico A no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto A que son diferentes al
 resultado previsto.
 El resultado obtenido es:
@@ -1362,7 +1368,7 @@ El resultado correcto deberia ser:
 
 La salida del periferico B no es correcta.
 
-	A continuación se muestra un volcado hexadecimal de los 10
+	A continuaciï¿½n se muestra un volcado hexadecimal de los 10
 primeros caracteres escritos sobre el puerto B que son diferentes al
 resultado previsto.
 El resultado obtenido es:
