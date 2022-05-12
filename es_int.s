@@ -61,8 +61,7 @@ INIT:
                         MOVE.B    #$40,IVR            * Vector int 0x40
                         MOVE.B    #%000100010,IMR     * Activar bits 1 y 5 para interr. RX
                         MOVE.B    #%000100010,IMRDUP  * Actualiza copia del IMR
-                        
-
+                        MOVE.L    #RTI,$100           * Insertar dir RTI en el primer vector de interrupciones
 
                         BSR      INI_BUFS
 
