@@ -2,7 +2,7 @@
 **************************
         ORG $0
         DC.L $8000
-        DC.L prENUNSCPR
+        DC.L INICIO
 
         ORG $400
 
@@ -91,21 +91,16 @@ SCAN:
                         MOVE.L          A4,-40(A6)
                         MOVE.L          A5,-44(A6)
                         ** Reset de parámetros
-                        CLR         D0          * * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA LECTURA)
-                        CLR         D1
-                        CLR         D2
-                        CLR         D3
-                        CLR         D4
-                        CLR         D5
+                        MOVE.L         #0,D0          * * RETURN (0XFFFFFFFF O NUMERO DE CARACTERES ACEPTADOS PARA LECTURA)
+                        MOVE.L         #0,D1
+                        MOVE.L         #0,D2
+                        MOVE.L         #0,D3
+                        MOVE.L         #0,D4
+                        MOVE.L         #0,D5
                         MOVE.L      8(A6),A1        * DIR BUFFER A A1
                         MOVE.W      12(A6),D1       * DESCRIPTOR A D1
                         MOVE.W      14(A6),D2       * TAMAÑO A D2
                         MOVE.W      D1,D5           * HAGO UNA COPIA DE D1 PARA USARLA DESPUES 
-
-                        **COMPROBACIÓN DE TAMAÑO**
-                        CMP.W       D2,D0           * aprovecho que D0 está limpio para comprobar el tamaño
-                        BLE         FN_SCN          * si el tamaño es menor o igual a 0 me voy al final
-
                         MOVE.L      #$FFFFFFFF,D4   * D4 = -1 para casos y comprobaciones
 
                         **SELECCION DE BUFFER**
@@ -115,33 +110,35 @@ SCAN:
                         BEQ         SB              *ESCRIBIR POR B
 
                         **ERROR EN CARACTER**
-                        MOVE.L      D4,D0 
-                        BRA         FN_SCN
+                        MOVE.L       D4,D0       * Devuelvo -1 para tamaño=0/
+                        BRA         FN_SCER
 
                         **LECTURA**
         
-        SA:             CMP.L       D2,D3           * He leido todo?
+        SA:             CMP.L       D2,D3           * Tamanyo = contador? Cubre tamanyo=0
                         BEQ         FN_SCN          * Si -> fin
+                        MOVE.L      #0,D0           * Aseguramos que D0 selecciona el buffer correcto
                         BSR         LEECAR          * D0=0 luego llamo a leecar sin problemas
                         CMP.L       D0,D4           * Buffer vacio? (D0=FFFFFFFF?) 
                         BEQ         FN_SCN          * Si -> fin
-                        MOVE.B      D0,(A5)+        * mover a buffer incrementando puntero
+                        MOVE.B      D0,(A1)+        * mover a buffer incrementando puntero
                         ADD.L       #1,D3           * incremento contador de caracteres leidos
                         BRA         SA
 
         SB:             CMP.L       D2,D3           * SI SE HA LEIDO TODO -> FIN
-                        MOVE.L      D1,D0           * D0=descriptor     
-                        BSR         LEECAR     
+                        BEQ         FN_SCN          * Si -> fin
+                        MOVE.L      #1,D0           * Aseguramos que D0 selecciona el buffer correcto
+                        BSR         LEECAR          * D0=0 luego llamo a leecar sin problemas
                         CMP.L       D0,D4           * Buffer vacio? (D0=FFFFFFFF?)
                         BEQ         FN_SCN          * Si -> fin
-                        MOVE.B      D0,(A5)+        * mover a buffer incrementando puntero
+                        MOVE.B      D0,(A1)+        * mover a buffer incrementando puntero
                         ADD.L       #1,D3           * incremento contador de caracteres leidos
                         BRA         SB 
 
                         **FIN SCAN** 
 
-        FN_SCN:         MOVE.L D3,D0                * D0<-contador de caracteres leidos 
-                        MOVE.L          -4(A6),D1
+        FN_SCN:         MOVE.L          D3,D0                * D0<-contador de caracteres leidos 
+        FN_SCER:        MOVE.L          -4(A6),D1
                         MOVE.L          -8(A6),D2
                         MOVE.L          -12(A6),D3
                         MOVE.L          -16(A6),D4
@@ -199,7 +196,7 @@ PRINT:
                         
         ERROR_PR: 
                         MOVE.L			#$ffffffff,D0	* D0 = -1
-                        JMP			P_FIN 
+                        JMP			P_FER           * saltamos a la salida de error 
                 
         A_PRINT:
                         MOVE.L			#2,D0			* Es 2 por el ESCCAR q si recibe 2 se va a buffer interno de transaminsion
@@ -254,7 +251,7 @@ PRINT:
         P_FIN:
                         MOVE.L 			D3,D0
                         *MOVEM.L	                (A6)+,A0-A5/D1-D5                    
-                        MOVE.L          -4(A6),D1
+        P_FER:          MOVE.L          -4(A6),D1
                         MOVE.L          -8(A6),D2
                         MOVE.L          -12(A6),D3
                         MOVE.L          -16(A6),D4
@@ -385,8 +382,33 @@ RTI:    LINK A6,#-44
                         JMP		FIN_RTI			* D0 != -1 a comparar otra vez
 
 *************************** FIN RTI ****************************************************
+dirBUFF 	EQU		$4000           	* El BUFF que a las pruebas
+
+SCILETRA	DC.L		$00000061		* Caracter 'a' [hex].
+SCFLETRA	DC.L		$00000074		* Caracter 't' [hex].
+SCBUCSCA	DC.L		25			* Repetir bucle 25 veces [dec].
+SCCHARFI	DC.L		1			* Quiero que esta prueba contenga al final
+								* del bucle un 0d. Indico 1 [dec].
+SCLinCFI	DC.L		1			* Quiero que esta prueba contenga al final
+								* del bucle un 0d. Indico 1 [dec].
+SCNLin		DC.L		0			* Numero de Lineas iguales que se quieren enviar (pr34es_int)
+SCSPEEDR	DC.B		%00000000		* Velocidad 50bps [bin].
+SCSDESCR	DC.L		$0			* Valor 0 = Linea A [hex}.
+SCdir		DC.L		$4e20			* dir de la linea A de SCAN
+SCTAMMAX	DC.L		$4444			* Tamanyo maximo de la linea [hex].
+SCCHAROK	DC.L		$000001f5		* Valor que deberia volver SCAN [hex].
+
+SCRES2L		DC.L		0			* Guardamos los result de cada linea en SCAN
 
 
+*** PRINT
+
+PRNLin		DC.L		1			* Numero de Lineas iguales que se quieren enviar (pr34es_int)
+PRSDESCR	DC.L		$0			* Valor 0 = Linea A [hex}.
+PRTAMMAX    	DC.L		$4444			* Tamanyo maximo de la linea [hex].
+PRCHAROK	DC.L		$00000000		* Valor que deberia volver PRINT [hex].
+
+PRRES2L		DC.L		0			* Guardamos los result de cada linea en SCAN
 * --------------------------------------------------------------------> CheckSOL
 * 
 * 
@@ -479,76 +501,6 @@ ESCCAR2:
 		RTS
 * --------------------------------------------------------------------> ESCCAR2
 		
-
-*** NOTA: abecedario ASCII en Hex
-* Letra 	a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
-* Hex 		61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f 70 71 72 73 74 75 76 77 78 79 7a
-* 
-
-*** Numeros: en ASCII
-* 	dec 	 0   1   2   3   4   5   6   7   8   9
-* 	HEX 	30	31	32	33	34	35	36	37	38	39
-* 	ASCII 	48  49  50  51  52  53  54  55  56  57
-
-
-
-* ----------------------------------------------------------> DATOS PARA SCAN
-*
-* Funcionamiento:
-* SCILETRA: Introduce la letra desde la que quieres que copie ESCCAR [hex].
-* SCFLETRA: Introduce la ultima letra que quieres que copie ESCCAR [hex].
-* SCBUCSCA:	Numero de veces que quieres que se repita bucle anterior. [dec]
-* SCCHARFI: Valor 0 = No quiero RC en mi linea ; 1 = Incluye un 0d al final.
-* SCSPEEDR: Introduce la velocidad para las linea. [Mirar valores en tabla]
-* SCSDESCR: Valor de descriptor deseado para SCAN. 0 = Linea A; 1 = Linea B.
-* SCTAMMAX: Introduce el tamanyo maximo que se debe de leer de la linea incluido 0d.
-* SCCHAROK:	Introduce el valor que deberia tener SCAN al final de su ejecucion.
-
-** A continuacion se meten datos de ejemplo, que es vÃ¡lido.
-
-*SCILETRA	EQU		$00000061		* Caracter 'a' [hex].
-*SCFLETRA	EQU		$00000074		* Caracter 't' [hex].
-*SCBUCSCA	EQU		25			* Repetir bucle 25 veces [dec].
-*SCCHARFI	EQU		1			* Quiero que esta prueba contenga al final
-								* del bucle un 0d. Indico 1 [dec].
-*SCSPEEDR	EQU		%00000000		* Velocidad 50bps [bin].
-*SCSDESCR	EQU		$0				* Valor 0 = Linea A [hex}.
-*SCTAMMAX	EQU		$4444			* Tamanyo maximo de la linea [hex].
-*SCCHAROK	EQU		$000001f5		* Valor que deberia volver SCAN [hex].
-
-dirBUFF 	EQU		$4000           	* El BUFF que a las pruebas
-
-SCILETRA	DC.L		$00000061		* Caracter 'a' [hex].
-SCFLETRA	DC.L		$00000074		* Caracter 't' [hex].
-SCBUCSCA	DC.L		25			* Repetir bucle 25 veces [dec].
-SCCHARFI	DC.L		1			* Quiero que esta prueba contenga al final
-								* del bucle un 0d. Indico 1 [dec].
-SCLinCFI	DC.L		1			* Quiero que esta prueba contenga al final
-								* del bucle un 0d. Indico 1 [dec].
-SCNLin		DC.L		0			* Numero de Lineas iguales que se quieren enviar (pr34es_int)
-SCSPEEDR	DC.B		%00000000		* Velocidad 50bps [bin].
-SCSDESCR	DC.L		$0			* Valor 0 = Linea A [hex}.
-SCdir		DC.L		$4e20			* dir de la linea A de SCAN
-SCTAMMAX	DC.L		$4444			* Tamanyo maximo de la linea [hex].
-SCCHAROK	DC.L		$000001f5		* Valor que deberia volver SCAN [hex].
-
-SCRES2L		DC.L		0			* Guardamos los result de cada linea en SCAN
-
-
-*** PRINT
-
-PRNLin		DC.L		1			* Numero de Lineas iguales que se quieren enviar (pr34es_int)
-PRSDESCR	DC.L		$0			* Valor 0 = Linea A [hex}.
-PRTAMMAX    	DC.L		$4444			* Tamanyo maximo de la linea [hex].
-PRCHAROK	DC.L		$00000000		* Valor que deberia volver PRINT [hex].
-
-PRRES2L		DC.L		0			* Guardamos los result de cada linea en SCAN
-
-* ----------------------------------------------------------> DATOS PARA SCAN
-
-
-* ------------------------------------------------------------------> prSCes_int
-* PPAL: prSCes_int
 prSCes_int:
 			MOVE.L	#1,D7					* CONTADOR.
 			MOVE.L	(SCFLETRA),D3			* ULTIMO CARACTER A METER.
@@ -606,7 +558,7 @@ prSCSCAN:
             
 
 			MOVE.L	(SCSDESCR),D0			* Descriptor
-			MOVE.L	(SCTAMMAX),D1			* Tamanyo
+			MOVE.L	(SCCHAROK),D1			* Tamanyo
 
 			MOVE.W 	D1,-(A7)				* Parametro TamaÃ±o para Scan
 			MOVE.W 	D0,-(A7)				* Parametro Descriptor para Scan
@@ -620,5 +572,60 @@ prSCSCAN:
 			BSR 	CheckSOL
 			
 			* Salimos
-			BREAK
-* ------------------------------------------------------------------> prSCes_int
+			RTS
+
+pr26es_int:
+			MOVE.L	#2,(SCBUCSCA)			* 2 bucles
+			MOVE.L	#$00000030,(SCILETRA)	* empezamos en Hex 30 = numero 0 dec
+			MOVE.L	#$00000039,(SCFLETRA)	* terminamos en Hex 39 = numero 9 dec
+
+			MOVE.L	#%00000000,(SCSPEEDR)	* Velocidad = 50 bps. (No tenemso la de 5 BPS=40bps)
+
+			MOVE.L	#$00000015,(SCCHAROK)	* El valor de terminacion correcto
+
+			MOVE.L	#1,(SCCHARFI)
+			
+			BSR		prSCes_int
+			
+			RTS
+
+
+BUFFER:  DS.B 2100 * Buffer para lectura y escritura de caracteres
+PARDIR:  DC.L 0 * Direcci´on que se pasa como par´ametro
+PARTAM:  DC.W 0 * Tama~no que se pasa como par´ametro
+CONTC:   DC.W 0 * Contador de caracteres a imprimir
+DESA:    EQU 0 * Descriptor l´ınea A
+DESB:    EQU 1 * Descriptor l´ınea B
+TAMBS:   EQU 30 * Tama~no de bloque para SCAN
+TAMBP:   EQU 7 * Tama~no de bloque para PRINT
+
+
+* Manejadores de excepciones
+INICIO: MOVE.L #BUS_ERROR,8 * Bus error handler
+        MOVE.L #ADDRESS_ER,12 * Address error handler
+        MOVE.L #ILLEGAL_IN,16 * Illegal instruction handler
+        MOVE.L #PRIV_VIOLT,32 * Privilege violation handler
+        MOVE.L #ILLEGAL_IN,40 * Illegal instruction handler
+        MOVE.L #ILLEGAL_IN,44 * Illegal instruction handler
+        BSR INIT
+        MOVE.W #$2000,SR * Permite interrupciones
+
+BUCPR:  MOVE.W #TAMBS,PARTAM * Inicializa par´ametro de tama~no
+        MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
+
+* Prueba para SCAN de introducir caracteres
+* introduce 20 caracteres: 0123456789 (2 veces) + 0d
+PRUEBA4:MOVE.W #$20,-(A7)     * Tama~no de bloque
+        MOVE.W #0,-(A7)         * Linea A
+        MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
+        BSR pr26es_int              
+
+BUS_ERROR: BREAK * Bus error handler
+        NOP
+ADDRESS_ER: BREAK * Address error handler
+        NOP
+ILLEGAL_IN: BREAK * Illegal instruction handler
+        NOP
+PRIV_VIOLT: BREAK * Privilege violation handler
+        NOP
+
