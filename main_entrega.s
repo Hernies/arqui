@@ -1,3 +1,4 @@
+INCLUDE bib_aux.s
 
 BUFFER:  DS.B 2100 * Buffer para lectura y escritura de caracteres
 PARDIR:  DC.L 0 * Direcci´on que se pasa como par´ametro
@@ -62,4 +63,3 @@ ILLEGAL_IN: BREAK * Illegal instruction handler
         NOP
 PRIV_VIOLT: BREAK * Privilege violation handler
         NOP
-INCLUDE bib_aux.s
