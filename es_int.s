@@ -178,14 +178,16 @@ PRINT:
                         MOVE.L          A4,-44(A6)
                         MOVE.L          A5,-48(A6)
                 * LIMPIO D1, D2, D3
-                        CLR 			D0
-                        CLR			D1				* Limpio D1 para descriptor			
-                        CLR			D2				* Limpio D2 para tamano
-                        CLR			D3				* Contador a 0 
-                        CLR			D4				* Limpio D4 para guardar el SR
-                        MOVE.L 			8(A6),A1 		* Buffer en A1 (marco de pila + buffer)	
+                        MOVE.L         #0,D0
+                        MOVE.L         #0,D1				* Limpio D1 para descriptor			
+                        MOVE.L         #0,D2				* Limpio D2 para tamano
+                        MOVE.L         #0,D3				* Contador a 0 
+                        MOVE.L         #0,D4				* Limpio D4 para guardar el SR
+                        MOVE.L         #0,D5
+                        MOVE.L         #0,D6
+                        MOVE.L 			8(A6),A1 		* Buffer en A1 
                         MOVE.W			12(A6),D1		* D1 <- Descriptor
-                        MOVE.W			14(A6),D2		* Tamano a D2 (marco de pila + buffer + descriptor + tamano )
+                        MOVE.W			14(A6),D2		* Tamano a D2 
                 
                 * COMPARACIONES PARA SABER SI ES A O B
                 
@@ -203,7 +205,6 @@ PRINT:
                         BRA			BUCLE_P
         B_PRINT:
                         MOVE.L			#3,D0
-                        JMP			BUCLE_P
                         
                 *BUCLE DE PRINT:
         BUCLE_P:
@@ -227,7 +228,7 @@ PRINT:
                         JMP			BUCLE_P
                         
         P_TER:
-                        CLR			D4
+                        MOVE.L         #0,D4
                         MOVE.W 			SR,D4 				* SR -> D4
                         MOVE.W   		#$2700,SR 			* Inhibicion de interrupciones
 
@@ -382,6 +383,7 @@ RTI:    LINK A6,#-44
                         JMP		FIN_RTI			* D0 != -1 a comparar otra vez
 
 *************************** FIN RTI ****************************************************
+* la bateria de pruebas
 dirBUFF 	EQU		$4000           	* El BUFF que a las pruebas
 
 SCILETRA	DC.L		$00000061		* Caracter 'a' [hex].
@@ -501,6 +503,8 @@ ESCCAR2:
 		RTS
 * --------------------------------------------------------------------> ESCCAR2
 		
+
+
 prSCes_int:
 			MOVE.L	#1,D7					* CONTADOR.
 			MOVE.L	(SCFLETRA),D3			* ULTIMO CARACTER A METER.
@@ -575,15 +579,15 @@ prSCSCAN:
 			RTS
 
 pr26es_int:
-			MOVE.L	#2,(SCBUCSCA)			* 2 bucles
+			MOVE.L	#200,(SCBUCSCA)			* 199 bucles
 			MOVE.L	#$00000030,(SCILETRA)	* empezamos en Hex 30 = numero 0 dec
 			MOVE.L	#$00000039,(SCFLETRA)	* terminamos en Hex 39 = numero 9 dec
 
 			MOVE.L	#%00000000,(SCSPEEDR)	* Velocidad = 50 bps. (No tenemso la de 5 BPS=40bps)
 
-			MOVE.L	#$00000015,(SCCHAROK)	* El valor de terminacion correcto
+			MOVE.L	#2001,(SCCHAROK)	* El valor de terminacion correcto
 
-			MOVE.L	#1,(SCCHARFI)
+			MOVE.L	#0,(SCCHARFI)
 			
 			BSR		prSCes_int
 			
@@ -612,14 +616,17 @@ INICIO: MOVE.L #BUS_ERROR,8 * Bus error handler
 
 BUCPR:  MOVE.W #TAMBS,PARTAM * Inicializa par´ametro de tama~no
         MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
-
-* Prueba para SCAN de introducir caracteres
-* introduce 20 caracteres: 0123456789 (2 veces) + 0d
-PRUEBA4:MOVE.W #$20,-(A7)     * Tama~no de bloque
-        MOVE.W #0,-(A7)         * Linea A
+* Descriptor incorrecto
+PRUEBA1:MOVE.W PARTAM,-(A7)     * Tama~no de bloque
+        MOVE.W #3,-(A7)         * Descriptor no valido
         MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
-        BSR pr26es_int              
-
+        BSR PRINT                * Llamamos a scan 
+* Tamaño = 0 con descriptor correcto
+PRUEBA2:MOVE.W #0,-(A7)     * Tama~no de bloque
+        MOVE.W #1,-(A7)         * Linea B
+        MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
+        BSR PRINT                * Llamamos a scan
+SALIR:  BRA BUCPR
 BUS_ERROR: BREAK * Bus error handler
         NOP
 ADDRESS_ER: BREAK * Address error handler
@@ -628,4 +635,12 @@ ILLEGAL_IN: BREAK * Illegal instruction handler
         NOP
 PRIV_VIOLT: BREAK * Privilege violation handler
         NOP
+
+******************************************************
+*       NO METER EN MEMORIA
+* Prueba para SCAN de introducir caracteres
+* introduce 20 caracteres: 0123456789 (2 veces) + 0d
+
+
+
 
