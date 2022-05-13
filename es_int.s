@@ -2,7 +2,7 @@
 **************************
         ORG $0
         DC.L $8000
-        DC.L INICIO
+        DC.L prENUNSCPR
 
         ORG $400
 
