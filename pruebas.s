@@ -227,7 +227,7 @@ pr23es_int:
 *		5 BytesPS velocidad de escritura de la persona en la linea
 *
 *	Salida:
-*		D0 = 00000015
+*		D0 = 00000014
 *
 pr26es_int:
 			MOVE.L	#2,(SCBUCSCA)			* 2 bucles
@@ -236,7 +236,7 @@ pr26es_int:
 
 			MOVE.L	#%00000000,(SCSPEEDR)	* Velocidad = 50 bps. (No tenemso la de 5 BPS=40bps)
 
-			MOVE.L	#$00000015,(SCCHAROK)	* El valor de terminacion correcto
+			MOVE.L	#$00000014,(SCCHAROK)	* El valor de terminacion correcto
 
 			MOVE.L	#1,(SCCHARFI)
 			
