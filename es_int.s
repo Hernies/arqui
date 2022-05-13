@@ -192,61 +192,57 @@ PRINT:
                 * COMPARACIONES PARA SABER SI ES A O B
                 
                         CMP.W			#0,D1			* Si es 0 escritura es en A
-                        BEQ			A_PRINT
+                        BEQ			BUCLE_PA
                         CMP.W			#1,D1			* Si es 1 escritura es en B
-                        BEQ			B_PRINT
+                        BEQ		        BUCLE_PB
                         
         ERROR_PR: 
                         MOVE.L			#$ffffffff,D0	* D0 = -1
                         JMP			P_FER           * saltamos a la salida de error 
                 
-        A_PRINT:
-                        MOVE.L			#2,D0			* Es 2 por el ESCCAR q si recibe 2 se va a buffer interno de transaminsion
-                        BRA			BUCLE_P
-        B_PRINT:
-                        MOVE.L			#3,D0
                         
                 *BUCLE DE PRINT:
-        BUCLE_P:
+        
+        BUCLE_PA:
                         CMP.L			D3,D2			* Si tamano == contador, hemos terminado
-                        BEQ			P_TER
-                        
-                        MOVE.B			(A1),D5				* Avanzo el buffer y guardo el dato en D5
-                        MOVE.L 			D3,-(A7)			* PUSH(D3)-> contador
-                        MOVE.L 			A1,-(A7)			* PUSH(A1)-> dir buffer
-                        MOVE.L 			D2,-(A7)			* PUSH(D2)-> tamano
-                        BSR			ESCCAR
-                        MOVE.L 			(A7)+,D2		    * POP(D2) <- tamano
-                        MOVE.L 			(A7)+,A1		    * POP(A1) <- dir buffer
-                        MOVE.L 			(A7)+,D3		    * POP(D3) <- conatdor
-                        ADD.L			#1,A1
-                        
-                        MOVE.L 			#$ffffffff,D6
-                        CMP.L			D6,D0 			*Esccar dice q el buffer esta lleno, hemos acabado		
-                        BEQ 			P_TER
-                        ADD.L			#1,D3			* Contador + 1
-                        JMP			BUCLE_P
-                        
-        P_TER:
-                        MOVE.L         #0,D4
-                        MOVE.W 			SR,D4 				* SR -> D4
-                        MOVE.W   		#$2700,SR 			* Inhibicion de interrupciones
-
-                * COMPROBACIONES
-                        CMP.W			#0,D1			* Compruebo si estamos en A
                         BEQ			A_SET
                         
-                        CMP.W			#1,D1			* Compruebo si estamos en B
+                        MOVE.B                  (A1)+,D1                * Avanzo el buffer y guardo el dato en D5
+                        MOVE.L                  #2,D0
+                        BSR			ESCCAR
+                        MOVE.L 			#$ffffffff,D6
+                        CMP.L			D6,D0 			*Esccar dice q el buffer esta lleno, hemos acabado		
+                        BEQ 			A_SET
+                        ADD.L			#1,D3			* Contador + 1
+                        JMP			BUCLE_PA
+
+        BUCLE_PB:
+                        CMP.L			D3,D2			* Si tamano == contador, hemos terminado
                         BEQ			B_SET
+                        
+                        MOVE.B                  (A1)+,D1                * Avanzo el buffer y guardo el dato en D5
+                        MOVE.L                  #3,D0
+                        BSR			ESCCAR
+                        MOVE.L 			#$ffffffff,D6
+                        CMP.L			D6,D0 			*Esccar dice q el buffer esta lleno, hemos acabado		
+                        BEQ 			B_SET
+                        ADD.L			#1,D3			* Contador + 1
+                        JMP			BUCLE_PB
+        
                 
-        A_SET:							
+        A_SET:		MOVE.L                  #0,D4
+                        MOVE.W 			SR,D4 				* SR -> D4
+                        MOVE.W   		#$2700,SR 			* Inhibicion de interrupciones					
                         OR.B 			#%00000001,IMRDUP
                         MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
                         MOVE.W 			D4,SR				* SR a valor original	
                         JMP 			P_FIN
-        B_SET:							
+
+        B_SET:		MOVE.L                  #0,D4
+                        MOVE.W 			SR,D4 				* SR -> D4
+                        MOVE.W   		#$2700,SR 			* Inhibicion de interrupciones					
                         OR.B 			#%00010000,IMRDUP
-                        MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
+                        MOVE.B 			IMRDUP,IMR			* Interrupciones en B 
                         MOVE.W 			D4,SR				* SR a valor original	
                                 
         P_FIN:
@@ -617,12 +613,12 @@ INICIO: MOVE.L #BUS_ERROR,8 * Bus error handler
 BUCPR:  MOVE.W #TAMBS,PARTAM * Inicializa par´ametro de tama~no
         MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
 * Descriptor incorrecto
-PRUEBA1:MOVE.W PARTAM,-(A7)     * Tama~no de bloque
+PRUEBA1:MOVE.W #0,-(A7)     * Tama~no de bloque
         MOVE.W #3,-(A7)         * Descriptor no valido
         MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
         BSR PRINT                * Llamamos a scan 
 * Tamaño = 0 con descriptor correcto
-PRUEBA2:MOVE.W #0,-(A7)     * Tama~no de bloque
+PRUEBA2:MOVE.W #1,-(A7)     * Tama~no de bloque
         MOVE.W #1,-(A7)         * Linea B
         MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
         BSR PRINT                * Llamamos a scan
