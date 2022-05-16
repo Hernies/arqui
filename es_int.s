@@ -230,21 +230,21 @@ PRINT:
                         JMP			BUCLE_PB
         
                 
-        A_SET:		MOVE.L                  #0,D4
-                        MOVE.W 			SR,D4 				* SR -> D4
-                        MOVE.W   		#$2700,SR 			* Inhibicion de interrupciones					
+        A_SET:		CMP.L                   #0,D3
+                        BEQ                     P_FIN
+                        MOVE.B                  IMRDUP,D4          					
                         OR.B 			#%00000001,IMRDUP
                         MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
-                        MOVE.W 			D4,SR				* SR a valor original	
-                        JMP 			P_FIN
+                        MOVE.B                  D4,IMRDUP
+                        BRA 			P_FIN
 
-        B_SET:		MOVE.L                  #0,D4
-                        MOVE.W 			SR,D4 				* SR -> D4
-                        MOVE.W   		#$2700,SR 			* Inhibicion de interrupciones					
+        B_SET:		CMP.L                   #0,D3
+                        BEQ                     P_FIN  
+                        MOVE.B                  IMRDUP,D4          					
                         OR.B 			#%00010000,IMRDUP
-                        MOVE.B 			IMRDUP,IMR			* Interrupciones en B 
-                        MOVE.W 			D4,SR				* SR a valor original	
-                                
+                        MOVE.B 			IMRDUP,IMR			* Interrupciones en B
+                        MOVE.B                  D4,IMRDUP
+                                 
         P_FIN:
                         MOVE.L 			D3,D0
                         *MOVEM.L	                (A6)+,A0-A5/D1-D5                    
@@ -618,7 +618,7 @@ PRUEBA1:MOVE.W #0,-(A7)     * Tama~no de bloque
         MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
         BSR PRINT                * Llamamos a scan 
 * Tamaño = 0 con descriptor correcto
-PRUEBA2:MOVE.W #1,-(A7)     * Tama~no de bloque
+PRUEBA2:MOVE.W #0,-(A7)     * Tama~no de bloque
         MOVE.W #1,-(A7)         * Linea B
         MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
         BSR PRINT                * Llamamos a scan
@@ -636,7 +636,3 @@ PRIV_VIOLT: BREAK * Privilege violation handler
 *       NO METER EN MEMORIA
 * Prueba para SCAN de introducir caracteres
 * introduce 20 caracteres: 0123456789 (2 veces) + 0d
-
-
-
-
