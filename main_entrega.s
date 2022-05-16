@@ -1,5 +1,3 @@
-INCLUDE bib_aux.s
-
 BUFFER:  DS.B 2100 * Buffer para lectura y escritura de caracteres
 PARDIR:  DC.L 0 * Direcci´on que se pasa como par´ametro
 PARTAM:  DC.W 0 * Tama~no que se pasa como par´ametro
