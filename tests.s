@@ -251,6 +251,20 @@ PRUEBA3:MOVE.W #$20,-(A7)     * Tama~no de bloque
         MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
         BSR pr26es_int              
         BREAK
-
+******************************************************
+* PRINT TESTS 
+BUCPR:  MOVE.W #TAMBS,PARTAM * Inicializa par´ametro de tama~no
+        MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
+* Descriptor incorrecto
+PRUEBA1:MOVE.W #0,-(A7)     * Tama~no de bloque
+        MOVE.W #3,-(A7)         * Descriptor no valido
+        MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
+        BSR PRINT                * Llamamos a scan 
+* Tamaño = 0 con descriptor correcto
+PRUEBA2:MOVE.W #0,-(A7)     * Tama~no de bloque
+        MOVE.W #1,-(A7)         * Linea B
+        MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
+        BSR PRINT                * Llamamos a scan
+SALIR:  BRA BUCPR
 
 
