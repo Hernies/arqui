@@ -598,7 +598,10 @@ DESA:    EQU 0 * Descriptor l´ınea A
 DESB:    EQU 1 * Descriptor l´ınea B
 TAMBS:   EQU 30 * Tama~no de bloque para SCAN
 TAMBP:   EQU 7 * Tama~no de bloque para PRINT
-
+DESC_CP1:   EQU 0
+TAM_CCP1:    EQU 5
+TAM_C7:     EQU 15
+DESC_C7:    EQU 1
 
 * Manejadores de excepciones
 INICIO: MOVE.L #BUS_ERROR,8 * Bus error handler
@@ -609,20 +612,37 @@ INICIO: MOVE.L #BUS_ERROR,8 * Bus error handler
         MOVE.L #ILLEGAL_IN,44 * Illegal instruction handler
         BSR INIT
         MOVE.W #$2000,SR * Permite interrupciones
-
-BUCPR:  MOVE.W #TAMBS,PARTAM * Inicializa par´ametro de tama~no
-        MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
-* Descriptor incorrecto
-PRUEBA1:MOVE.W #0,-(A7)     * Tama~no de bloque
-        MOVE.W #3,-(A7)         * Descriptor no valido
-        MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
-        BSR PRINT                * Llamamos a scan 
-* Tamaño = 0 con descriptor correcto
-PRUEBA2:MOVE.W #0,-(A7)     * Tama~no de bloque
-        MOVE.W #1,-(A7)         * Linea B
-        MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
-        BSR PRINT                * Llamamos a scan
-SALIR:  BRA BUCPR
+BUCPR:  MOVE.W #TAM_C7,PARTAM        * Inicializa parametro de tama~no
+        MOVE.L #BUFFER,PARDIR       * Parametro BUFFER = comienzo del buffer $236D
+OTRAL:      MOVE.W PARTAM,-(A7)     * Tama~no de bloque
+            MOVE.W #DESC_C7,-(A7)      * Puerto B
+            MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
+ESPL:       BSR SCAN
+            ADD.L #8,A7             * Restablece la pila
+            ADD.L D0,PARDIR         * Calcula la nueva direcci´on de lectura
+            SUB.W D0,PARTAM         * Actualiza el n´umero de caracteres le´ıdos
+            BNE OTRAL               * Si no se han le´ıdo todas los caracteres
+        * del bloque se vuelve a leer
+        
+        MOVE.W #TAM_C7,CONTC         * Inicializa contador de caracteres a imprimir
+        MOVE.L #BUFFER,PARDIR       * Par´ametro BUFFER = comienzo del buffer
+OTRAE:  MOVE.W #TAM_CCP1,PARTAM * Tama~no de escritura = Tama~no de bloque
+ESPE:   MOVE.W PARTAM,-(A7)   * Tama~no de escritura
+        MOVE.W #DESC_CP1,-(A7)          * Puerto A
+        MOVE.L PARDIR,-(A7)         * Direcci´on de escritura
+        BSR PRINT
+        ADD.L #8,A7                 * Restablece la pila
+        ADD.L D0,PARDIR             * Calcula la nueva direcci´on del buffer
+        SUB.W D0,CONTC              * Actualiza el contador de caracteres
+        BEQ SALIR                   * Si no quedan caracteres se acaba
+        SUB.W D0,PARTAM             * Actualiza el tama~no de escritura
+        BNE ESPE                    * Si no se ha escrito todo el bloque se insiste
+        CMP.W #TAM_CCP1,CONTC          * Si el no de caracteres que quedan es menor que
+        * el tama~no establecido se imprime ese n´umero
+        BHI OTRAE                   * Siguiente bloque
+        MOVE.W CONTC,PARTAM
+        BRA ESPE                    * Siguiente bloque
+SALIR: BRA BUCPR
 BUS_ERROR: BREAK * Bus error handler
         NOP
 ADDRESS_ER: BREAK * Address error handler
