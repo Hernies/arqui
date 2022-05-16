@@ -1591,5 +1591,6 @@ mod:        LINK A6,#-16            * Guardar 'm', 'n' y un 'res'
             UNLK A6
             RTS
 
+
 ** Final de subrutinas auxiliares
 
