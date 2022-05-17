@@ -406,7 +406,7 @@ SCRES2L		DC.L		0			* Guardamos los result de cada linea en SCAN
 PRNLin		DC.L		1			* Numero de Lineas iguales que se quieren enviar (pr34es_int)
 PRSDESCR	DC.L		$0			* Valor 0 = Linea A [hex}.
 PRTAMMAX    	DC.L		$4444			* Tamanyo maximo de la linea [hex].
-PRCHAROK	DC.L		$00000000		* Valor que deberia volver PRINT [hex].
+PRCHAROK	DC.L		$a		* Valor que deberia volver PRINT [hex].
 
 PRRES2L		DC.L		0			* Guardamos los result de cada linea en SCAN
 * --------------------------------------------------------------------> CheckSOL
@@ -579,13 +579,13 @@ prSCSCAN:
 			RTS
 
 pr26es_int:
-			MOVE.L	#200,(SCBUCSCA)			* 199 bucles
+			MOVE.L	#1,(SCBUCSCA)			* 199 bucles
 			MOVE.L	#$00000030,(SCILETRA)	* empezamos en Hex 30 = numero 0 dec
 			MOVE.L	#$00000039,(SCFLETRA)	* terminamos en Hex 39 = numero 9 dec
 
 			MOVE.L	#%00000000,(SCSPEEDR)	* Velocidad = 50 bps. (No tenemso la de 5 BPS=40bps)
 
-			MOVE.L	#2001,(SCCHAROK)	* El valor de terminacion correcto
+			MOVE.L	#10,(SCCHAROK)	* El valor de terminacion correcto
 
 			MOVE.L	#0,(SCCHARFI)
 			
@@ -604,7 +604,7 @@ TAMBS:   EQU 30 * Tama~no de bloque para SCAN
 TAMBP:   EQU 7 * Tama~no de bloque para PRINT
 DESC_CP1:   EQU 0
 TAM_CCP1:    EQU 5
-TAM_C7:     EQU 15
+TAM_C7:     EQU 10
 DESC_C7:    EQU 1
 
 
@@ -634,8 +634,8 @@ PRUEBA3:MOVE.W #$20,-(A7)     * Tama~no de bloque
 * Manejadores de excepciones
 
         MOVE.W #TAM_C7,CONTC         * Inicializa contador de caracteres a imprimir
-        MOVE.L #BUFFER,PARDIR       * Par´ametro BUFFER = comienzo del buffer
-OTRAE:  MOVE.W #TAM_CCP1,PARTAM * Tama~no de escritura = Tama~no de bloque
+OTRAE:  MOVE.W #10,PARTAM * Tama~no de escritura = Tama~no de bloque !!!!!
+        MOVE.L #$4000,PARDIR
 ESPE:   MOVE.W PARTAM,-(A7)   * Tama~no de escritura
         MOVE.W #DESC_CP1,-(A7)          * Puerto A
         MOVE.L PARDIR,-(A7)         * Direcci´on de escritura
