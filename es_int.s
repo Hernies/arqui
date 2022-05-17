@@ -233,16 +233,16 @@ PRINT:
         A_SET:		CMP.L                   #0,D3
                         BEQ                     P_FIN
                         MOVE.B                  IMRDUP,D4          					
-                        OR.B 			#%00000001,IMRDUP
-                        MOVE.B 			IMRDUP,IMR			* Interrupciones en A 
+                        OR.B 			#%00000001,D4
+                        MOVE.B 			D4,IMR			* Interrupciones en A 
                         MOVE.B                  D4,IMRDUP
                         BRA 			P_FIN
 
         B_SET:		CMP.L                   #0,D3
                         BEQ                     P_FIN  
                         MOVE.B                  IMRDUP,D4          					
-                        OR.B 			#%00010000,IMRDUP
-                        MOVE.B 			IMRDUP,IMR			* Interrupciones en B
+                        OR.B 			#%00010000,D4
+                        MOVE.B 			D4,IMR			* Interrupciones en B
                         MOVE.B                  D4,IMRDUP
                                  
         P_FIN:
@@ -264,6 +264,7 @@ PRINT:
                         RTS
 *************************** FIN PRINT *****************************************************
 *************************** RTI ****************************************************
+*DUDA: Porque el SR cambia de 2400-2404 aparentemente aleatoriamente?
 * Primero comprobar ISR (estado de interrupción) -> 4 bits 1 para cada
 * Luego comprobar la línea, el modo (lectura o escritura)? -> me lo dice el 
 *       Si es recepción (lectura) entonces comprobar que FIFO !empty() 
@@ -292,7 +293,7 @@ RTI:    LINK A6,#-44
 
        	COMP_PREV:      CLR 		D2
                         CLR 		D3
-                        MOVE.B		IMRDUP,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
+                        MOVE.B		IMR,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
                         MOVE.B 		ISR,D3  		* Guardo en D3 el valor del ISR (Estado de Interrupción)
                         AND.B 		D3,D2			* Aplico la mascara
 
