@@ -3,9 +3,9 @@
 ************************************************************************
 
 		
-        *ORG     $0
-        *DC.L    $8000          * Pila
-        *DC.L    PPAL           * PC
+        ORG     $0
+        DC.L    $8000          * Pila
+        DC.L    PPAL           * PC
 		
 
 ************************************************************************
@@ -18,7 +18,7 @@
         ORG     $400
 
 MR1A    EQU     $effc01       * de modo A (escritura)
-MR2A    EQU     $effc01       * de modo A (2º escritura)
+MR2A    EQU     $effc01       * de modo A (2ï¿½ escritura)
 SRA     EQU     $effc03       * de estado A (lectura)
 CSRA    EQU     $effc03       * de seleccion de reloj A (escritura)
 CRA     EQU     $effc05       * de control A (escritura)
@@ -26,7 +26,7 @@ TBA     EQU     $effc07       * buffer transmision A (escritura)
 RBA     EQU     $effc07       * buffer recepcion A  (lectura)
 
 MR1B    EQU     $effc11       * de modo B (escritura)
-MR2B    EQU     $effc11       * de modo B (2º escritura)
+MR2B    EQU     $effc11       * de modo B (2ï¿½ escritura)
 SRB     EQU     $effc13       * de estado B (lectura)
 CSRB    EQU     $effc13       * de seleccion de reloj B (escritura)
 CRB     EQU     $effc15       * de control B (escritura)
@@ -43,10 +43,10 @@ IVR     EQU    	$effc19	      * vector de interrupcion (lectura y escritura, amb
 ********************** DEFINICION DE VARIABLES *************************
 ************************************************************************
 
-* DC: Define constant <ETIQUETA> DC.<TAMAÑO> <ITEM>,<ITEM>,.. 
-* A partir de la dir de memoria ETIQUETA se almacena <ITEM>, cada uno con TAMAÑO
+* DC: Define constant <ETIQUETA> DC.<TAMAï¿½O> <ITEM>,<ITEM>,.. 
+* A partir de la dir de memoria ETIQUETA se almacena <ITEM>, cada uno con TAMAï¿½O
 
-* DS: Define storage <ETIQUETA> DS.<TAMAÑO> <LONGITUD>
+* DS: Define storage <ETIQUETA> DS.<TAMAï¿½O> <LONGITUD>
 * Genera bloque de bytes, palabras o palabras largas sin inicializar
 
 *************************************************************************
@@ -434,8 +434,8 @@ SCAN    	LINK     A6,#-24          * creamos el marco de pila 24B para guardar 6
 			MOVE.L   D6,-24(A6)       *
 			MOVE.L   8(A6),A3         * A3 direccion del buffer.
 			MOVE.W   12(A6),D5        * D5 descriptor.
-			MOVE.W   14(A6),D4        * D4 tamaño.	
-			CMP.W 	 #0,D4			  * si tamaño es 0 salto SCANZ 
+			MOVE.W   14(A6),D4        * D4 tamaï¿½o.	
+			CMP.W 	 #0,D4			  * si tamaï¿½o es 0 salto SCANZ 
 			BEQ 	 SCANZ
 			MOVE.L   #0,D2            * contador = 0.
 			CMP.W    #0,D5            * comprobamos descriptor.
@@ -458,7 +458,7 @@ FIN_SCAN	MOVE.L   -4(A6),A3        * restauramos los registros que hemos usado A
 ************************************************************************
 ****************************** SCAN_A **********************************
 ************************************************************************
-* D4=tamaño(numero max de caracteres a leer y copiar) D5=descriptor(A o B), A3=direccion del buffer.
+* D4=tamaï¿½o(numero max de caracteres a leer y copiar) D5=descriptor(A o B), A3=direccion del buffer.
 * D0= salida, numero de caracteres leidos y copiados, D2 = contador
 
 SCAN_A     	MOVE.L   #0,D0 		    * parametro de entrada de LEECAR es 0(buffer A de recepcion)
@@ -469,7 +469,7 @@ SCAN_A     	MOVE.L   #0,D0 		    * parametro de entrada de LEECAR es 0(buffer A 
 			
 			ADD.L #1,D2             * incrementamos contador.
 			MOVE.B D0,(A3)+         * copiamos el dato leido en el buffer y aumentamos su direccion.
-			CMP.L D2,D4             * comparamos nº de datos leidos (D2) con tamaño D4.
+			CMP.L D2,D4             * comparamos nï¿½ de datos leidos (D2) con tamaï¿½o D4.
 			BNE SCAN_A	            * si no son iguales bucle a SCAN_A
 				
 			MOVE.L   D2,D0 		    * copia datos leidos (D2 en el registro de resultado D0)
@@ -481,7 +481,7 @@ F_SCANA		MOVE.L   D2,D0			* no se ha leido ningun caracter (buffer vacio)
 ************************************************************************
 ****************************** SCAN_B **********************************
 ************************************************************************
-* D4=tamaño(numero max de caracteres a leer y copiar, D5=descriptor(A o B), A3=direccion del buffer.
+* D4=tamaï¿½o(numero max de caracteres a leer y copiar, D5=descriptor(A o B), A3=direccion del buffer.
 * D0= salida, numero de caracteres leidos y copiados, D2 = contador
 
 SCAN_B     	MOVE.L   #1,D0 		    * parametro de entrada de LEECAR es 1(buffer B de recepcion)
@@ -492,7 +492,7 @@ SCAN_B     	MOVE.L   #1,D0 		    * parametro de entrada de LEECAR es 1(buffer B 
 			
 			ADD.L #1,D2             * incrementamos contador.
 			MOVE.B D0,(A3)+         * copiamos el dato leido en el buffer y aumentamos su direccion.
-			CMP.L D2,D4             * comparamos nº de datos leidos (D2) con tamaño D4.
+			CMP.L D2,D4             * comparamos nï¿½ de datos leidos (D2) con tamaï¿½o D4.
 			BNE SCAN_B	            * si no son iguales seguimos y si no fin. 
 			
 			MOVE.L   D2,D0 		    * copia datos leidos (D2 en el registro de resultado D0)
@@ -504,7 +504,7 @@ F_SCANB		MOVE.L   D2,D0			* Ponemos en D0 el numero de caracteres leidos hasta a
 ************************************************************************
 ******************************** PRINT *********************************
 ************************************************************************
-* A3 = Direccion Buffer 	D4 = Tamaño     D5 = Descriptor(0 -linea A, 1 -linea B)
+* A3 = Direccion Buffer 	D4 = Tamaï¿½o     D5 = Descriptor(0 -linea A, 1 -linea B)
 * Lee del buffer y escribe en puerto A o B
 * D0 = Si error en parametros FF.. si no error indica num de caracteres aceptados
 
@@ -518,8 +518,8 @@ PRINT    	LINK     A6,#-28          * creamos el marco de pila 28B para guardar 
 			MOVE.L   D2,-28(A6)		  *
 			MOVE.L   8(A6),A3         * A3 direccion del buffer.
 			MOVE.W   12(A6),D5        * D5 descriptor.
-			MOVE.W   14(A6),D4        * D4 tamaño.
-			CMP.W 	 #0,D4			  * si tamaño es 0 salto a PRINTZ 
+			MOVE.W   14(A6),D4        * D4 tamaï¿½o.
+			CMP.W 	 #0,D4			  * si tamaï¿½o es 0 salto a PRINTZ 
 			BEQ 	 PRINTZ
 			MOVE.L   #0,D2            * contador (D2) = 0.
 			CMP.W    #0,D5            * comprobamos descriptor.
@@ -542,7 +542,7 @@ FIN_PRINT	MOVE.L   -4(A6),A3        * restauramos los registros que hemos usado 
 ************************************************************************
 ****************************** PRINT_A *********************************
 ************************************************************************
-* D4=tamaño, D5=descriptor, A3=direccion del buffer
+* D4=tamaï¿½o, D5=descriptor, A3=direccion del buffer
 
 PRINT_A    	MOVE.B (A3)+,D1            	 * parametro de entrada de ESCCAR (caracter a escribir)
 			MOVE.L   #2,D0 		         * parametro de entrada de ESCCAR es 2(buffer A de transmision)
@@ -555,7 +555,7 @@ PRINT_A    	MOVE.B (A3)+,D1            	 * parametro de entrada de ESCCAR (carac
             ADD.L #1,(N_CHAR_A)         * incrementamos el numero de caracteres que faltan por transmitir.
             *MOVE.W D3,SR               * volvemos a poner SR en su estado anterior.
             ADD.L #1,D2                 * incrementamos contador.
-            CMP.L D2,D4                 * comparamos contador con tamaño.
+            CMP.L D2,D4                 * comparamos contador con tamaï¿½o.
             BEQ FA_PRINT                * si son iguales saltamos a final.
             JMP PRINT_A                 * si no seguimos escribiendo.  
 
@@ -571,7 +571,7 @@ FA_PRINT    MOVE.L D2,D0				* D0 = numero de caracteres escritos(contador)
 ************************************************************************
 ****************************** PRINT_B *********************************
 ************************************************************************
-* D4=tamaño, A3=direccion del buffer.
+* D4=tamaï¿½o, A3=direccion del buffer.
 
 PRINT_B    	MOVE.B (A3)+,D1            	 * parametro de entrada de ESCCAR (caracter a escribir)
 			MOVE.L   #3,D0 		         * parametro de entrada de ESCCAR es 3(buffer B de transmision)
@@ -584,7 +584,7 @@ PRINT_B    	MOVE.B (A3)+,D1            	 * parametro de entrada de ESCCAR (carac
             ADD.L #1,(N_CHAR_B)          * incrementamos el numero de caracteres que faltan por transmitir.
             *MOVE.W D3,SR                * volvemos a poner SR en su estado anterior.
             ADD.L #1,D2                  * incrementamos contador.
-            CMP.L D2,D4                  * comparamos contador con tamaño.
+            CMP.L D2,D4                  * comparamos contador con tamaï¿½o.
             BEQ FB_PRINT                 * si son iguales saltamos a final.
             JMP PRINT_B                  * si no seguimos escribiendo. 
 
@@ -725,12 +725,12 @@ PPAL   		MOVE.L  #$8000,A7
       		
 BUFFER: 	DS.B 2100 					* Buffer para lectura y escritura de caracteres
 PARDIR: 	DC.L 0 						* Direccion que se pasa como parametro
-PARTAM: 	DC.W 0 						* Tamaño que se pasa como parametro
+PARTAM: 	DC.W 0 						* Tamaï¿½o que se pasa como parametro
 CONTC:  	DC.W 0 						* Contador de caracteres a imprimir
 DESA:   	EQU 0 						* Descriptor linea A
 DESB:   	EQU 1 						* Descriptor linea B
-TAMBS:  	EQU 4 						* Tamaño de bloque para SCAN
-TAMBP:  	EQU 4 						* Tamaño de bloque para PRINT	
+TAMBS:  	EQU 4 						* Tamaï¿½o de bloque para SCAN
+TAMBP:  	EQU 4 						* Tamaï¿½o de bloque para PRINT	
 
 * Manejadores de excepciones
 INICIO: 	MOVE.L  #BUS_ERROR,8 		* Bus error handler
@@ -743,9 +743,9 @@ INICIO: 	MOVE.L  #BUS_ERROR,8 		* Bus error handler
 			BSR INIT
 			MOVE.W #$2000,SR 			* Permite interrupciones
 		
-BUCPR:  	MOVE.W #TAMBS,PARTAM 		* Inicializa parametro de tamaño
+BUCPR:  	MOVE.W #TAMBS,PARTAM 		* Inicializa parametro de tamaï¿½o
 			MOVE.L #BUFFER,PARDIR 		* Parametro BUFFER = comienzo del buffer
-OTRAL:  	MOVE.W PARTAM,-(A7) 		* Tamaño de bloque
+OTRAL:  	MOVE.W PARTAM,-(A7) 		* Tamaï¿½o de bloque
 			MOVE.W #DESB,-(A7) 			* Puerto A
 			MOVE.L PARDIR,-(A7) 		* Direccion de lectura
 ESPL:  		BSR SCAN
@@ -755,8 +755,8 @@ ESPL:  		BSR SCAN
 			BNE OTRAL 					* Si no se han leido todas los caracteres del bloque se vuelve a leer
 			MOVE.W #TAMBS,CONTC 		* Inicializa contador de caracteres a imprimir
 			MOVE.L #BUFFER,PARDIR 		* Parametro BUFFER = comienzo del buffer
-OTRAE:  	MOVE.W #TAMBP,PARTAM 		* Tamaño de escritura = Tamaño de bloque
-ESPE:   	MOVE.W PARTAM,-(A7) 		* Tamaño de escritura
+OTRAE:  	MOVE.W #TAMBP,PARTAM 		* Tamaï¿½o de escritura = Tamaï¿½o de bloque
+ESPE:   	MOVE.W PARTAM,-(A7) 		* Tamaï¿½o de escritura
 			MOVE.W #DESA,-(A7) 			* Puerto B
 			MOVE.L PARDIR,-(A7) 		* Direccion de escritura
 			BSR PRINT
@@ -766,7 +766,7 @@ ESPE:   	MOVE.W PARTAM,-(A7) 		* Tamaño de escritura
 			BEQ SALIR 					* Si no quedan caracteres se acaba
 			SUB.W D0,PARTAM 			* Actualiza el tamano de escritura
 			BNE ESPE 					* Si no se ha escrito todo el bloque se insiste
-			CMP.W #TAMBP,CONTC 			* Si el no de caracteres que quedan es menor que el tama~no establecido se imprime ese n´umero
+			CMP.W #TAMBP,CONTC 			* Si el no de caracteres que quedan es menor que el tama~no establecido se imprime ese nï¿½umero
 			BHI OTRAE 					* Siguiente bloque
 			MOVE.W CONTC,PARTAM
 			BRA ESPE 					* Siguiente bloque

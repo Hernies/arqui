@@ -293,11 +293,11 @@ RTI:    LINK A6,#-44
 
        	COMP_PREV:      CLR 		D2
                         CLR 		D3
-                        MOVE.B		IMR,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
+                        MOVE.B		IMRDUP,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
                         MOVE.B 		ISR,D3  		* Guardo en D3 el valor del ISR (Estado de Interrupción)
                         AND.B 		D3,D2			* Aplico la mascara
 
-                        BTST		#0,D2
+        RTI_COMP:       BTST		#0,D2
                         BNE		RTI_TRANS_A		**TRANSMISION -> LEECAR
 
                         BTST		#1,D2
@@ -327,13 +327,13 @@ RTI:    LINK A6,#-44
         RTI_TRANS_A:
                         *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
                         CLR 		D0
-                        MOVE.B		#%00000010,D0
+                        MOVE.B		#2,D0
                         BSR		LEECAR			* Llamamos a leecar
                         MOVE.L 		#$ffffffff,D4
                         CMP.L		D4,D0			* Buffer interno vacio??
                         BEQ		RTA_VACIO			
                         MOVE.B		D0,TBA			* mete el caracter 
-                        JMP     	FIN_RTI	
+                        JMP     	RTI_COMP	
 	RTA_VACIO:
                         CLR 		D1
                         CLR 		D3
@@ -342,25 +342,25 @@ RTI:    LINK A6,#-44
                         AND.B 		D3,D1                   * porque aplicamos máscara?
                         MOVE.B		D1,IMRDUP
                         MOVE.B		IMRDUP,IMR
-                        JMP     	FIN_RTI		
+                        JMP     	RTI_COMP		
 		
 	RTI_RECEP_A:
-                        CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
-                        CLR 		D1			* Pongo D1 a 0
+                        MOVE.L		#0,D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
+                        MOVE.L		#0,D1			* Pongo D1 a 0
                         MOVE.B		RBA,D1			* Guardo los datos del buffer de recepcion de A en D1
-                        BSR		ESCCAR			* LLamada a ESCCAR
-                        JMP		FIN_RTI		        * D0 != -1 a comparar otra vez
+                        BSR		ESCCAR			* LLamada a ESCCAR 
+                        JMP		RTI_COMP		     
 
 	RTI_TR_B:
                         *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
                         CLR 		D0
-                        MOVE.B		#%00000011,D0
+                        MOVE.B		#3,D0
                         BSR             LEECAR			* Llamamos a leecar
                         MOVE.L 		#$ffffffff,D4
                         CMP.L		D4,D0			* Buffer interno vacio??
                         BEQ		RTB_VACIO			
                         MOVE.B		D0,TBB			* mete el caracter 
-                        JMP     	FIN_RTI	
+                        JMP     	RTI_COMP	
 	RTB_VACIO:
                         CLR 		D1
                         CLR 		D3
@@ -369,232 +369,17 @@ RTI:    LINK A6,#-44
                         AND.B 		D3,D1
                         MOVE.B		D1,IMRDUP
                         MOVE.B		IMRDUP,IMR
-                        JMP     	FIN_RTI	
+                        JMP     	RTI_COMP	
 
 	RTI_RC_B:
                         CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
                         CLR 		D1			* Pongo D1 a 0
                         MOVE.B		RBB,D1			* Guardo los datos del buffer de recepcion de A en D1
-                        MOVE.L		#%00000001,D0
+                        MOVE.L		#1,D0                   * 
                         BSR		ESCCAR			* LLamadita a ESCCAR		
-                        JMP		FIN_RTI			* D0 != -1 a comparar otra vez
+                        JMP		RTI_COMP			* D0 != -1 a comparar otra vez
 
 *************************** FIN RTI ****************************************************
-
-*********************PRUEBA PRINT 
-* la bateria de pruebas
-dirBUFF 	EQU		$4000           	* El BUFF que a las pruebas
-
-SCILETRA	DC.L		$00000061		* Caracter 'a' [hex].
-SCFLETRA	DC.L		$00000074		* Caracter 't' [hex].
-SCBUCSCA	DC.L		25			* Repetir bucle 25 veces [dec].
-SCCHARFI	DC.L		1			* Quiero que esta prueba contenga al final
-								* del bucle un 0d. Indico 1 [dec].
-SCLinCFI	DC.L		1			* Quiero que esta prueba contenga al final
-								* del bucle un 0d. Indico 1 [dec].
-SCNLin		DC.L		0			* Numero de Lineas iguales que se quieren enviar (pr34es_int)
-SCSPEEDR	DC.B		%00000000		* Velocidad 50bps [bin].
-SCSDESCR	DC.L		$0			* Valor 0 = Linea A [hex}.
-SCdir		DC.L		$4e20			* dir de la linea A de SCAN
-SCTAMMAX	DC.L		$4444			* Tamanyo maximo de la linea [hex].
-SCCHAROK	DC.L		$000001f5		* Valor que deberia volver SCAN [hex].
-
-SCRES2L		DC.L		0			* Guardamos los result de cada linea en SCAN
-
-
-*** PRINT
-
-PRNLin		DC.L		1			* Numero de Lineas iguales que se quieren enviar (pr34es_int)
-PRSDESCR	DC.L		$0			* Valor 0 = Linea A [hex}.
-PRTAMMAX    	DC.L		$4444			* Tamanyo maximo de la linea [hex].
-PRCHAROK	DC.L		$a		* Valor que deberia volver PRINT [hex].
-
-PRRES2L		DC.L		0			* Guardamos los result de cada linea en SCAN
-* --------------------------------------------------------------------> CheckSOL
-* 
-* 
-CheckSOL:
-			* Comprobamos que D0 tiene el resultado correcto
-			CMP.L	(PRCHAROK),D6			* Comprobamos caracteres que debemos tener.
-			BEQ		BIEN					* Saltamos a BIEN.
-			JMP 	MAL						* Si no, esta MAL.
-BIEN:
-*			EOR.L	D0,D0
-			BREAK						
-			RTS	
-
-MAL:		
-*			MOVE.L	#$FFFFFFFF,D0
-			BREAK						
-			RTS	
-			
-MAL2:		
-*			MOVE.L	#$FFFFFFFF,D0
-			BREAK						
-			RTS	
-* --------------------------------------------------------------------> CheckSOL
-
-
-* --------------------------------------------------------------------> LEECAR2
-* AUX. LEECAR2 (buffer)
-*	Objetivo:
-*		Leer un caracter del buffer circular designado por el parametro 
-*		entrante "buffer"
-*
-*	Parámetros:
-*		buffer
-*				Se pasara en A0
-*
-*	Valor de retorno:
-*		D0		
-*				- 0 = Todo OK
-*		D1		
-*				- numero de 0 a 255 caracter del buffer
-*
-LEECAR2:
-	*** NO ES UN BUFFER INTERNO
-
-		* Limpiamos el D1
- 		EOR.L		D1,D1							
-
-		* Leemos el ASCII del Buffer pasado en A2
-		MOVE.B		(A2),D1		* Extraccion de Ascii en D0. (De 0 a 255 DEC / 0 a FF HEX)
-		
-		* Aumentamos la dir del Buff pasado
-		ADD.L		#$1,A2				
-		
-		* Ponemos a D0 = 0 para indicar OK
- 		EOR.L		D0,D0		
-		
-		RTS
-* --------------------------------------------------------------------> LEECAR2
-
-
-* --------------------------------------------------------------------> ESCCAR2
-* AUX. ESCCAR2 (buffer)
-*	Objetivo:
-*		Leer un caracter del buffer circular designado por el parametro 
-*		entrante "buffer"
-*
-*	Parametros:
-*		buffer
-*				Se pasara en A0
-*				Nos fijamos en los dos bits menos significativos 
-*
-*	Valor de retorno:
-*		D0		
-*				- 0 = Todo OK
-*		D1		
-*				- numero de 0 a 255 caracter del buffer
-*
-ESCCAR2:
-	*** NO ES UN BUFFER INTERNO
-		
-		* Guardamos el ASCII pasado en D1 al Buffer pasado
-		MOVE.B		D1,(A2)					* Inserccion del Ascii al Buffer seleccionado. (De 0 a 255)
-		
-		* Aumentamos la dir del Buff pasado.
-		ADD.L		#$1,A2				
-		
-		* Ponemos a D0 = 0 para indicar OK
-		EOR.L		D0,D0					
-		
-		RTS
-* --------------------------------------------------------------------> ESCCAR2
-		
-
-
-prSCes_int:
-			MOVE.L	#1,D7					* CONTADOR.
-			MOVE.L	(SCFLETRA),D3			* ULTIMO CARACTER A METER.
-			
-			MOVE.B  (SCSPEEDR),CSRA     		* VELOCIDAD LINEA A.
-    		MOVE.B  (SCSPEEDR),CSRB     		* VELOCIDAD LINEA B.
-
-
-prSCINI:
-
-			MOVE.L	(SCILETRA),D1			* PRIMER CARACTER A METER.
-			
-	
-prSCBUC:		
-			MOVE.L	(SCSDESCR),D0			* BUFFER PARA METER DATOS [PUERTO]	
-			
-			MOVEM.L	A0-A6/D1-D7,-(A7)		* GUARDAMOS REGISTROS EN PILA EXCEPTO D0			
-			BSR		ESCCAR					* LLAMAMOS A ESCCAR
-			MOVEM.L	(A7)+,A0-A6/D1-D7	    * RESTAURAMOS REGISTROS EXCEPTO D0		
-
-			CMP.L	#$FFFFFFFF,D0			* VERIFICAMOS QUE ESCCAR NO FALLA.
-			BEQ		MAL2						* SALTAMOS A ESCFalla.
-
-			CMP.L	D3,D1					* COMPARAMOS SI D1 ES D3 [ULTIMA CARACTER]. 
-											* SI LO ES ENTONCES AUMENTO CONT D7.
-			BEQ		prSCD7A1				* AUMENTAMOS 1 EN D7	
-
-			ADD.L	#1,D1
-			JMP		prSCBUC		
-
-prSCD7A1:	
-
-			CMP.L	(SCBUCSCA),D7			* SI D7 ES REPETICION DEL BUCLE. FIN.
-			BEQ		prSCSUM0
-
-			ADD.L	#1,D7
-			JMP		prSCINI
-
-prSCSUM0:
-		
-			CMPI.L	#0,(SCCHARFI)		* Si hay un 0, entonces NO anadiremos 0d al final.
-			BEQ		prSCSCAN				* Por lo tanto SCAN deberia salir con D0=0.
-
-			* Si hay un 1 e SCCHARFI, entonces si hay que aÃ±adirlo y se hace un ESCCAR con 0d.
-
-			MOVE.L	#$0000000d,D1			* METEMOS EL SALTO DE LINEA
-			MOVEM.L	A0-A6/D1-D7,-(A7)		* GUARDAMOS REGISTROS EN PILA EXCEPTO D0			
-			BSR		ESCCAR					* LLAMAMOS A ESCCAR CON D0.
-			MOVEM.L	(A7)+,A0-A6/D1-D7	    * RESTAURAMOS REGISTROS EXCEPTO D0		
-
-			CMP.L	#$FFFFFFFF,D0			* VERIFICAMOS QUE ESCCAR NO FALLA.
-			BEQ		MAL2						* SALTAMOS A ESCFalla.
-			
-prSCSCAN:
-            
-
-			MOVE.L	(SCSDESCR),D0			* Descriptor
-			MOVE.L	(SCCHAROK),D1			* Tamanyo
-
-			MOVE.W 	D1,-(A7)				* Parametro TamaÃ±o para Scan
-			MOVE.W 	D0,-(A7)				* Parametro Descriptor para Scan
-			MOVE.L 	#dirBUFF,-(A7)			* Parametro Buffer para Scan
-
-			BSR 	SCAN
-	
-		
-		*** Saltamos a comprobar la solución
-			* Pasamos en D6 el contador de los corracteres.
-			BSR 	CheckSOL
-			MOVE.L 	(A7)+,D0
-			MOVE.L 	(A7)+,D1
-			MOVE.L 	(A7)+,D2
-			* Salimos
-			RTS
-
-pr26es_int:
-			MOVE.L	#1,(SCBUCSCA)			* 199 bucles
-			MOVE.L	#$00000030,(SCILETRA)	* empezamos en Hex 30 = numero 0 dec
-			MOVE.L	#$00000039,(SCFLETRA)	* terminamos en Hex 39 = numero 9 dec
-
-			MOVE.L	#%00000000,(SCSPEEDR)	* Velocidad = 50 bps. (No tenemso la de 5 BPS=40bps)
-
-			MOVE.L	#10,(SCCHAROK)	* El valor de terminacion correcto
-
-			MOVE.L	#0,(SCCHARFI)
-			
-			BSR		prSCes_int
-			
-			RTS
-
-
 BUFFER:  DS.B 2100 * Buffer para lectura y escritura de caracteres
 PARDIR:  DC.L 0 * Direcci´on que se pasa como par´ametro
 PARTAM:  DC.W 0 * Tama~no que se pasa como par´ametro
@@ -603,11 +388,6 @@ DESA:    EQU 0 * Descriptor l´ınea A
 DESB:    EQU 1 * Descriptor l´ınea B
 TAMBS:   EQU 30 * Tama~no de bloque para SCAN
 TAMBP:   EQU 7 * Tama~no de bloque para PRINT
-DESC_CP1:   EQU 0
-TAM_CCP1:    EQU 5
-TAM_C7:     EQU 10
-DESC_C7:    EQU 1
-
 
 
 * Manejadores de excepciones
@@ -623,36 +403,38 @@ INICIO: MOVE.L #BUS_ERROR,8 * Bus error handler
 BUCPR:  MOVE.W #TAMBS,PARTAM * Inicializa par´ametro de tama~no
         MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
 
-******************************************************
-*       NO METER EN MEMORIA
-* Prueba para SCAN de introducir caracteres
-* introduce 20 caracteres: 0123456789 (2 veces) + 0d
-PRUEBA3:MOVE.W #$20,-(A7)     * Tama~no de bloque
-        MOVE.W #0,-(A7)         * Linea A
-        MOVE.L PARDIR,-(A7)     * Direcci´on de lectura
-        BSR pr26es_int              
-        BREAK
-* Manejadores de excepciones
+OTRAL:  MOVE.W PARTAM,-(A7) * Tama~no de bloque
+        MOVE.W #DESA,-(A7) * Puerto A
+        MOVE.L PARDIR,-(A7) * Direcci´on de lectura
 
-        MOVE.W #TAM_C7,CONTC         * Inicializa contador de caracteres a imprimir
-OTRAE:  MOVE.W #10,PARTAM * Tama~no de escritura = Tama~no de bloque !!!!!
-        MOVE.L #$4000,PARDIR
-ESPE:   MOVE.W PARTAM,-(A7)   * Tama~no de escritura
-        MOVE.W #DESC_CP1,-(A7)          * Puerto A
-        MOVE.L PARDIR,-(A7)         * Direcci´on de escritura
+ESPL:   BSR SCAN
+        ADD.L #8,A7 * Restablece la pila
+        ADD.L D0,PARDIR * Calcula la nueva direcci´on de lectura
+        SUB.W D0,PARTAM * Actualiza el n´umero de caracteres le´ıdos
+        BNE OTRAL * Si no se han le´ıdo todas los caracteres
+        * del bloque se vuelve a leer
+        MOVE.W #TAMBS,CONTC * Inicializa contador de caracteres a imprimir
+        MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
+
+OTRAE:  MOVE.W #TAMBP,PARTAM * Tama~no de escritura = Tama~no de bloque
+
+ESPE:   MOVE.W PARTAM,-(A7) * Tama~no de escritura
+        MOVE.W #DESB,-(A7) * Puerto B
+        MOVE.L PARDIR,-(A7) * Direcci´on de escritura
         BSR PRINT
-        ADD.L #8,A7                 * Restablece la pila
-        ADD.L D0,PARDIR             * Calcula la nueva direcci´on del buffer
-        SUB.W D0,CONTC              * Actualiza el contador de caracteres
-        BEQ SALIR                   * Si no quedan caracteres se acaba
-        SUB.W D0,PARTAM             * Actualiza el tama~no de escritura
-        BNE ESPE                    * Si no se ha escrito todo el bloque se insiste
-        CMP.W #TAM_CCP1,CONTC          * Si el no de caracteres que quedan es menor que
+        ADD.L #8,A7 * Restablece la pila
+        ADD.L D0,PARDIR * Calcula la nueva direcci´on del buffer
+        SUB.W D0,CONTC * Actualiza el contador de caracteres
+        BEQ SALIR * Si no quedan caracteres se acaba
+        SUB.W D0,PARTAM * Actualiza el tama~no de escritura
+        BNE ESPE * Si no se ha escrito todo el bloque se insiste
+        CMP.W #TAMBP,CONTC * Si el no de caracteres que quedan es menor que
         * el tama~no establecido se imprime ese n´umero
-        BHI OTRAE                   * Siguiente bloque
+        BHI OTRAE * Siguiente bloque
         MOVE.W CONTC,PARTAM
-        BRA ESPE                    * Siguiente bloque
-SALIR: BRA BUCPR
+        BRA ESPE * Siguiente bloque
+        
+SALIR:  BRA BUCPR
 BUS_ERROR: BREAK * Bus error handler
         NOP
 ADDRESS_ER: BREAK * Address error handler
@@ -661,8 +443,3 @@ ILLEGAL_IN: BREAK * Illegal instruction handler
         NOP
 PRIV_VIOLT: BREAK * Privilege violation handler
         NOP
-
-******************************************************
-*       NO METER EN MEMORIA
-* Prueba para SCAN de introducir caracteres
-* introduce 20 caracteres: 0123456789 (2 veces) + 0d
