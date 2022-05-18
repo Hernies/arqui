@@ -295,7 +295,7 @@ RTI:    LINK A6,#-44
                         CLR 		D3
                         MOVE.B		IMRDUP,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
                         MOVE.B 		ISR,D3  		* Guardo en D3 el valor del ISR (Estado de Interrupción)
-                        AND.B 		D3,D2			* Aplico la mascara
+                        AND.B 		D2,D3			* Aplico la mascara
 
         RTI_COMP:       BTST		#0,D2
                         BNE		RTI_TRANS_A		**TRANSMISION -> LEECAR
@@ -333,7 +333,7 @@ RTI:    LINK A6,#-44
                         CMP.L		D4,D0			* Buffer interno vacio??
                         BEQ		RTA_VACIO			
                         MOVE.B		D0,TBA			* mete el caracter 
-                        JMP     	RTI_COMP	
+                        JMP     	FIN_RTI	
 	RTA_VACIO:
                         CLR 		D1
                         CLR 		D3
@@ -342,14 +342,14 @@ RTI:    LINK A6,#-44
                         AND.B 		D3,D1                   * porque aplicamos máscara?
                         MOVE.B		D1,IMRDUP
                         MOVE.B		IMRDUP,IMR
-                        JMP     	RTI_COMP		
+                        JMP     	FIN_RTI		
 		
 	RTI_RECEP_A:
                         MOVE.L		#0,D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
                         MOVE.L		#0,D1			* Pongo D1 a 0
                         MOVE.B		RBA,D1			* Guardo los datos del buffer de recepcion de A en D1
                         BSR		ESCCAR			* LLamada a ESCCAR 
-                        JMP		RTI_COMP		     
+                        JMP		FIN_RTI		     
 
 	RTI_TR_B:
                         *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
@@ -360,7 +360,7 @@ RTI:    LINK A6,#-44
                         CMP.L		D4,D0			* Buffer interno vacio??
                         BEQ		RTB_VACIO			
                         MOVE.B		D0,TBB			* mete el caracter 
-                        JMP     	RTI_COMP	
+                        JMP     	FIN_RTI	
 	RTB_VACIO:
                         CLR 		D1
                         CLR 		D3
@@ -369,7 +369,7 @@ RTI:    LINK A6,#-44
                         AND.B 		D3,D1
                         MOVE.B		D1,IMRDUP
                         MOVE.B		IMRDUP,IMR
-                        JMP     	RTI_COMP	
+                        JMP     	FIN_RTI	
 
 	RTI_RC_B:
                         CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
@@ -377,7 +377,7 @@ RTI:    LINK A6,#-44
                         MOVE.B		RBB,D1			* Guardo los datos del buffer de recepcion de A en D1
                         MOVE.L		#1,D0                   * 
                         BSR		ESCCAR			* LLamadita a ESCCAR		
-                        JMP		RTI_COMP			* D0 != -1 a comparar otra vez
+                        JMP		FIN_RTI			* D0 != -1 a comparar otra vez
 
 *************************** FIN RTI ****************************************************
 BUFFER:  DS.B 2100 * Buffer para lectura y escritura de caracteres
@@ -386,8 +386,8 @@ PARTAM:  DC.W 0 * Tama~no que se pasa como par´ametro
 CONTC:   DC.W 0 * Contador de caracteres a imprimir
 DESA:    EQU 0 * Descriptor l´ınea A
 DESB:    EQU 1 * Descriptor l´ınea B
-TAMBS:   EQU 30 * Tama~no de bloque para SCAN
-TAMBP:   EQU 7 * Tama~no de bloque para PRINT
+TAMBS:   EQU 1 * Tama~no de bloque para SCAN
+TAMBP:   EQU 1 * Tama~no de bloque para PRINT
 
 
 * Manejadores de excepciones
