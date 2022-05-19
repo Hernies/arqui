@@ -234,16 +234,16 @@ PRINT:
                         BEQ                     P_FIN
                         MOVE.B                  IMRDUP,D4          					
                         OR.B 			#%00000001,D4
-                        MOVE.B 			D4,IMR			* Interrupciones en A 
-                        MOVE.B                  D4,IMRDUP
+                        MOVE.B 			D4,IMRDUP			* Interrupciones en A 
+                        MOVE.B                  D4,IMR
                         BRA 			P_FIN
 
         B_SET:		CMP.L                   #0,D3
                         BEQ                     P_FIN  
                         MOVE.B                  IMRDUP,D4          					
                         OR.B 			#%00010000,D4
-                        MOVE.B 			D4,IMR			* Interrupciones en B
-                        MOVE.B                  D4,IMRDUP
+                        MOVE.B 			D4,IMRDUP			* Interrupciones en B
+                        MOVE.B                  D4,IMR
                                  
         P_FIN:
                         MOVE.L 			D3,D0
@@ -297,16 +297,16 @@ RTI:    LINK A6,#-44
                         MOVE.B 		ISR,D3  		* Guardo en D3 el valor del ISR (Estado de Interrupción)
                         AND.B 		D2,D3			* Aplico la mascara
 
-        RTI_COMP:       BTST		#0,D2
+        RTI_COMP:       BTST		#0,D3
                         BNE		RTI_TRANS_A		**TRANSMISION -> LEECAR
 
-                        BTST		#1,D2
+                        BTST		#1,D3
                         BNE		RTI_RECEP_A		** RECEPCION -> ESCCAR
 
-                        BTST		#4,D2
+                        BTST		#4,D3
                         BNE		RTI_TR_B		**TRANSMISION -> LEECAR
                         
-                        BTST		#5,D2
+                        BTST		#5,D3
                         BNE		RTI_RC_B		** RECEPCION -> ESCCAR
 
         FIN_RTI:        MOVE.L          -4(A6),D0 
