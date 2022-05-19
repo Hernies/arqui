@@ -293,11 +293,11 @@ RTI:    LINK A6,#-44
 
        	COMP_PREV:      CLR 		D2
                         CLR 		D3
-                        MOVE.B		IMRDUP,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
+        RTI_COMP:       MOVE.B		IMRDUP,D2		* Guardo en D2 el valor de la copia del IMR (mascara)
                         MOVE.B 		ISR,D3  		* Guardo en D3 el valor del ISR (Estado de Interrupción)
                         AND.B 		D2,D3			* Aplico la mascara
 
-        RTI_COMP:       BTST		#0,D3
+                       BTST		#0,D3
                         BNE		RTI_TRANS_A		**TRANSMISION -> LEECAR
 
                         BTST		#1,D3
@@ -333,7 +333,7 @@ RTI:    LINK A6,#-44
                         CMP.L		D4,D0			* Buffer interno vacio??
                         BEQ		RTA_VACIO			
                         MOVE.B		D0,TBA			* mete el caracter 
-                        JMP     	FIN_RTI	
+                        JMP     	RTI_COMP	
 	RTA_VACIO:
                         CLR 		D1
                         CLR 		D3
@@ -342,14 +342,14 @@ RTI:    LINK A6,#-44
                         AND.B 		D3,D1                   * porque aplicamos máscara?
                         MOVE.B		D1,IMRDUP
                         MOVE.B		IMRDUP,IMR
-                        JMP     	FIN_RTI		
+                        JMP     	RTI_COMP		
 		
 	RTI_RECEP_A:
                         MOVE.L		#0,D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
                         MOVE.L		#0,D1			* Pongo D1 a 0
                         MOVE.B		RBA,D1			* Guardo los datos del buffer de recepcion de A en D1
                         BSR		ESCCAR			* LLamada a ESCCAR 
-                        JMP		FIN_RTI		     
+                        JMP		RTI_COMP		     
 
 	RTI_TR_B:
                         *CMP.B   	#0,FLAG_TBA      	* Se transmite caracter
@@ -360,7 +360,7 @@ RTI:    LINK A6,#-44
                         CMP.L		D4,D0			* Buffer interno vacio??
                         BEQ		RTB_VACIO			
                         MOVE.B		D0,TBB			* mete el caracter 
-                        JMP     	FIN_RTI	
+                        JMP     	RTI_COMP	
 	RTB_VACIO:
                         CLR 		D1
                         CLR 		D3
@@ -369,7 +369,7 @@ RTI:    LINK A6,#-44
                         AND.B 		D3,D1
                         MOVE.B		D1,IMRDUP
                         MOVE.B		IMRDUP,IMR
-                        JMP     	FIN_RTI	
+                        JMP     	RTI_COMP	
 
 	RTI_RC_B:
                         CLR		D0			* Pongo D0 a 0 -> ESCCAR uso buffer recepcion A
@@ -377,11 +377,12 @@ RTI:    LINK A6,#-44
                         MOVE.B		RBB,D1			* Guardo los datos del buffer de recepcion de A en D1
                         MOVE.L		#1,D0                   * 
                         BSR		ESCCAR			* LLamadita a ESCCAR		
-                        JMP		FIN_RTI			* D0 != -1 a comparar otra vez
+                        JMP		RTI_COMP			* D0 != -1 a comparar otra vez
 
 *************************** FIN RTI ****************************************************
 BUFFER:  DS.B 2100 * Buffer para lectura y escritura de caracteres
 PARDIR:  DC.L 0 * Direcci´on que se pasa como par´ametro
+PARDIR2: DC.L 0 * Direcci´on que se pasa como par´ametro
 PARTAM:  DC.W 0 * Tama~no que se pasa como par´ametro
 CONTC:   DC.W 0 * Contador de caracteres a imprimir
 DESA:    EQU 0 * Descriptor l´ınea A
@@ -404,7 +405,7 @@ BUCPR:  MOVE.W #TAMBS,PARTAM * Inicializa par´ametro de tama~no
         MOVE.L #BUFFER,PARDIR * Par´ametro BUFFER = comienzo del buffer
 
 OTRAL:  MOVE.W PARTAM,-(A7) * Tama~no de bloque
-        MOVE.W #DESA,-(A7) * Puerto A
+        MOVE.W #DESB,-(A7) * Puerto A
         MOVE.L PARDIR,-(A7) * Direcci´on de lectura
 
 ESPL:   BSR SCAN
@@ -419,7 +420,7 @@ ESPL:   BSR SCAN
 OTRAE:  MOVE.W #TAMBP,PARTAM * Tama~no de escritura = Tama~no de bloque
 
 ESPE:   MOVE.W PARTAM,-(A7) * Tama~no de escritura
-        MOVE.W #DESB,-(A7) * Puerto B
+        MOVE.W #DESA,-(A7) * Puerto B
         MOVE.L PARDIR,-(A7) * Direcci´on de escritura
         BSR PRINT
         ADD.L #8,A7 * Restablece la pila
@@ -433,6 +434,7 @@ ESPE:   MOVE.W PARTAM,-(A7) * Tama~no de escritura
         BHI OTRAE * Siguiente bloque
         MOVE.W CONTC,PARTAM
         BRA ESPE * Siguiente bloque
+
         
 SALIR:  BRA BUCPR
 BUS_ERROR: BREAK * Bus error handler
